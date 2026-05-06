@@ -162,7 +162,7 @@ All Thermocline envelopes are JSON. The schema is intentionally minimal.
 
 ```json
 {
-  "cirdan": "0.3.0",
+  "thermocline": "0.3.0",
   "type": "task",
   "envelope_id": "<uuid>",
   "issued_at": "<iso8601>",
@@ -211,7 +211,7 @@ All Thermocline envelopes are JSON. The schema is intentionally minimal.
 
 ```json
 {
-  "cirdan": "0.3.0",
+  "thermocline": "0.3.0",
   "type": "task_result",
   "envelope_id": "<matches task envelope_id>",
   "result_id": "<uuid>",
@@ -250,7 +250,7 @@ remains valid.
 
 ```json
 {
-  "cirdan": "0.3.0",
+  "thermocline": "0.3.0",
   "type": "job",
   "job_id": "<uuid-v4>",
   "issued_at": "<iso8601>",
@@ -344,7 +344,7 @@ remains valid.
 
 ```json
 {
-  "cirdan": "0.3.0",
+  "thermocline": "0.3.0",
   "type": "job_result",
   "job_id": "<matches job envelope job_id>",
   "result_id": "<uuid>",
@@ -711,8 +711,8 @@ The following reference implementations are planned or in development:
 |------|------|----------|--------|
 | Seamount | Compute forge (task + job receiver) | Swift / Python | Planned |
 | Photophore | Shadow protocol (policy engine) | Python | Planned |
-| cirdan-py | Python client library | Python | Planned |
-| cirdan-ts | TypeScript client library | TypeScript | Planned |
+| thermocline-py | Python client library | Python | Planned |
+| thermocline-ts | TypeScript client library | TypeScript | Planned |
 
 ---
 
@@ -727,6 +727,7 @@ may break compatibility and require explicit migration.
 ## Changelog
 
 ### 0.3.0
+- Renamed schema version field from `cirdan` to `thermocline` to align with reference implementations (`pi-forge`, etc.) and the spec's own Versioning prose. Pre-release correction within the 0.3.0-draft RFC window.
 - Added Role Architecture section — five functional roles (sovereign node, policy
   engine, identity provider, forge, memory store) defined as composable capabilities,
   not coupled to specific systems
