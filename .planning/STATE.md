@@ -1,3 +1,19 @@
+---
+gsd_state_version: 1.0
+milestone: v0.1
+milestone_name: Release
+status: planning
+stopped_at: Phase 1 context gathered
+last_updated: "2026-05-06T02:11:04.475Z"
+last_activity: 2026-05-05 — Suite-wide planning hub initialized; PROJECT, REQUIREMENTS, ROADMAP committed in `thermocline/.planning/`. Spec patch (`cirdan` → `thermocline` field rename) committed at `thermocline@5c0d87c`.
+progress:
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+---
+
 # Project State
 
 ## Project Reference
@@ -29,6 +45,7 @@ Single planning hub at `thermocline/.planning/`. The `photophore/` and `seamount
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: —
 - Total execution time: —
@@ -83,6 +100,6 @@ Items acknowledged and carried forward to subsequent milestones:
 
 ## Session Continuity
 
-Last session: 2026-05-05 (suite-wide initialization)
-Stopped at: ROADMAP.md committed in thermocline/.planning/; ready to begin Phase 1 planning. The previous photophore-only planning hub is being relocated; photophore/.planning/ and photophore/CLAUDE.md will be removed in a follow-up commit referencing this hub.
-Resume file: None
+Last session: 2026-05-06T02:11:04.467Z
+Stopped at: Phase 1 context gathered
+Resume file: .planning/phases/01-thermocline-py-foundations/01-CONTEXT.md
