@@ -44,6 +44,7 @@ dev = [
 
 [project.scripts]
 thermocline-build-schemas = "thermocline.scripts.build_schemas:main"
+thermocline-check-no-json-dumps = "thermocline.scripts.check_no_json_dumps:main"
 
 [project.urls]
 Homepage = "https://github.com/dom/thermocline"
