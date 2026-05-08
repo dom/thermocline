@@ -21,7 +21,7 @@ from thermocline.schemes import KeyScheme
 # mypy --strict MUST reject this because ``_token`` is required (no default) and
 # the only valid value is ``_ReceiptConstructorToken``, which is module-private
 # to ``thermocline.identity``.
-bad: Receipt = Receipt(  # type: ignore[reportPrivateUsage]
+bad: Receipt = Receipt(
     envelope_id="forged",
     signature_hash="forged",
     verified_at=datetime.now(timezone.utc),

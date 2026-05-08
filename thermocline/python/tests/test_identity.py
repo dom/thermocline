@@ -47,7 +47,9 @@ def test_identity_provider_is_runtime_checkable() -> None:
 def test_identity_provider_declares_required_methods() -> None:
     """IDENT-01: Protocol must declare scheme + sign + verify + public_key + generate."""
     # The members live as annotations / methods on the Protocol class.
-    members = set(dir(IdentityProvider))
+    methods = set(dir(IdentityProvider))
+    annotations = set(IdentityProvider.__annotations__.keys())
+    members = methods | annotations
     for required in ("scheme", "sign", "verify", "public_key", "generate"):
         assert required in members, (
             f"IdentityProvider missing required member {required!r}"
