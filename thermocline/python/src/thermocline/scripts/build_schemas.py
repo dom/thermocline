@@ -77,7 +77,10 @@ def _serialize_schema(schema: dict[str, Any]) -> str:
     # OK: emits a schema artifact to disk (not a signing input). Pitfall 11
     # forbids json.dumps as signing input only — canonical JSON via rfc8785
     # ships in Plan 02.
-    return json.dumps(schema, indent=2, sort_keys=True) + "\n"  # noqa: pitfall-11-not-signing-input
+    # pitfall-11 OK: schema artifact, not signing input.
+    return json.dumps(  # not a signing path
+        schema, indent=2, sort_keys=True
+    ) + "\n"
 
 
 def write_all() -> None:
