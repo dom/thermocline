@@ -41,7 +41,7 @@ The journey is from three published specs at v0.3.0-draft (Thermocline · Photop
 Plans:
 - [x] 01-01: Workspace skeleton + `thermocline/python/` package scaffold + envelope types (Pydantic v2) for task / task_result / job / job_result / error + JSON Schema artifact generation under `thermocline/schema/`.
 - [x] 01-02: Canonical JSON (`thermocline.canonical.canonicalize` via `rfc8785`) + Hypothesis round-trip stability tests + canonical-JSON CI lint forbidding `json.dumps` outside explicitly non-signing paths.
-- [ ] 01-03: `IdentityProvider` Protocol + brine reference adapter (PyNaCl + python-keyring) + key-scheme dispatch on verify + `Receipt` value type with private constructor + initial conformance fixture set under `thermocline/conformance/{valid,invalid}/`.
+- [x] 01-03: `IdentityProvider` Protocol + brine reference adapter (PyNaCl + python-keyring) + key-scheme dispatch on verify + `Receipt` value type with private constructor + initial conformance fixture set under `thermocline/conformance/{valid,invalid}/`.
 
 ---
 
