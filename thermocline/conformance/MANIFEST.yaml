@@ -1,0 +1,20 @@
+# Thermocline conformance fixtures — cross-language test corpus.
+#
+# Phase 1 ships:
+#   valid/    — request/response envelope pairs that any compliant impl must accept.
+#   invalid/  — one fixture per Thermocline AT-C threat-model surface (AT-C1..AT-C6).
+#
+# Phase 2 will add Photophore AT-A* fixtures (under invalid/AT-A*).
+# Phase 3 will add Seamount AT-E* fixtures (under invalid/AT-E*).
+# Phase 4's forge_conformance harness walks each subdirectory's MANIFEST.yaml
+# and emits a unified pass/fail report covering every surface.
+#
+# The schema here is intentionally minimal so third-party impls can read this
+# directory cold without reaching into Python types. JSON envelopes are the
+# wire format; YAML manifests are reference plumbing only.
+schema_version: "0.3.1"
+spec_url: "https://thermocline.spec/v0.3.1/"
+phases_covered:
+  - phase: 1
+    description: "Thermocline envelope-side surfaces (AT-C1..AT-C6) plus the canonical valid pair."
+    surfaces: ["AT-C1", "AT-C2", "AT-C3", "AT-C4", "AT-C5", "AT-C6"]

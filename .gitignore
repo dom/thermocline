@@ -26,3 +26,6 @@ htmlcov/
 .vscode/
 .idea/
 *.swp
+
+# uv lock — dev-only artifact (repository README: pip-install for end users; uv for dev)
+uv.lock

@@ -40,6 +40,7 @@ dev = [
     "mypy>=1.10",
     "ruff>=0.5",
     "pip-audit",
+    "pyyaml>=6.0",
 ]
 
 [project.scripts]
