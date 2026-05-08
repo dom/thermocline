@@ -55,21 +55,25 @@ def test_receipt_direct_construction_raises_at_runtime() -> None:
 
 
 def test_receipt_runtime_error_mentions_design_rationale() -> None:
-    """The TypeError message names the verify-only path so devs find the rationale fast."""
+    """Foreign-token TypeError message names the verify-only path so devs find the rationale fast."""
+    class _Foreign:
+        pass
+
     try:
-        Receipt(  # type: ignore[call-arg]
+        Receipt(  # type: ignore[call-arg, arg-type]
             envelope_id="forged",
             signature_hash="forged",
             verified_at=datetime.now(timezone.utc),
             key_scheme=KeyScheme.BRINE,
+            _token=_Foreign(),  # type: ignore[arg-type]
         )
     except TypeError as exc:
         text = str(exc)
         assert "verify" in text.lower(), (
             "Receipt TypeError should explain that only IdentityProvider.verify produces a Receipt"
         )
-
-
+    else:
+        raise AssertionError("foreign-token Receipt construction should have raised TypeError")
 def test_receipt_with_foreign_sentinel_object_still_rejects() -> None:
     """Even a same-named object from outside is rejected — identity check, not name."""
 
