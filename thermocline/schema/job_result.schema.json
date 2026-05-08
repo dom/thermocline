@@ -1,0 +1,241 @@
+{
+  "$defs": {
+    "KeyScheme": {
+      "description": "Signing scheme declared by a channel and carried in every signature block.\n\nPer Thermocline Design Constraint 8: key scheme is declared, never inferred.\nVerifiers MUST reject missing or unrecognized schemes; a channel's scheme is\nset at creation time and cannot change mid-session.",
+      "enum": [
+        "brine",
+        "pgp",
+        "x509",
+        "none"
+      ],
+      "title": "KeyScheme",
+      "type": "string"
+    },
+    "_JobArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "title": "Data",
+          "type": "string"
+        },
+        "format": {
+          "title": "Format",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "format",
+        "data"
+      ],
+      "title": "_JobArtifact",
+      "type": "object"
+    },
+    "_Provenance": {
+      "additionalProperties": false,
+      "description": "``provenance`` block on result envelopes.",
+      "properties": {
+        "local_tiers_present": {
+          "default": false,
+          "title": "Local Tiers Present",
+          "type": "boolean"
+        },
+        "shadows_received": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Shadows Received",
+          "type": "array"
+        },
+        "steps_executed": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Steps Executed",
+          "type": "array"
+        },
+        "tiers_present": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Tiers Present",
+          "type": "array"
+        }
+      },
+      "title": "_Provenance",
+      "type": "object"
+    },
+    "_ReceiptSignature": {
+      "additionalProperties": false,
+      "description": "``receipt_signature`` block on a result envelope.",
+      "properties": {
+        "envelope_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Envelope Id"
+        },
+        "inputs_received": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Inputs Received",
+          "type": "array"
+        },
+        "job_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Job Id"
+        },
+        "key_scheme": {
+          "$ref": "#/$defs/KeyScheme"
+        },
+        "node_id": {
+          "title": "Node Id",
+          "type": "string"
+        },
+        "result_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result Id"
+        },
+        "sig": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sig"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key_scheme",
+        "node_id",
+        "timestamp"
+      ],
+      "title": "_ReceiptSignature",
+      "type": "object"
+    }
+  },
+  "$id": "https://thermocline.spec/schema/v0.3.1/job_result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The ``job_result`` envelope.\n\nSpec: ``../README.md`` \u00a7 Job Result Envelope.",
+  "properties": {
+    "artifact": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/_JobArtifact"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "completed_at": {
+      "title": "Completed At",
+      "type": "string"
+    },
+    "halt_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Halt Reason"
+    },
+    "job_id": {
+      "title": "Job Id",
+      "type": "string"
+    },
+    "provenance": {
+      "$ref": "#/$defs/_Provenance"
+    },
+    "receipt_signature": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/_ReceiptSignature"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "responder": {
+      "title": "Responder",
+      "type": "string"
+    },
+    "result_id": {
+      "title": "Result Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "complete",
+        "failed",
+        "halted"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "thermocline": {
+      "title": "Thermocline",
+      "type": "string"
+    },
+    "type": {
+      "const": "job_result",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "thermocline",
+    "type",
+    "job_id",
+    "result_id",
+    "status",
+    "completed_at",
+    "responder",
+    "provenance"
+  ],
+  "title": "JobResult",
+  "type": "object"
+}
