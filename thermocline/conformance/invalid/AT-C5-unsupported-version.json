@@ -1,0 +1,14 @@
+{
+  "thermocline": "0.0.1",
+  "type": "task",
+  "envelope_id": "a1b2c3d4-0000-4000-8000-000000000005",
+  "issued_at": "2026-05-08T00:00:00Z",
+  "issuer": "my-sovereign-node",
+  "channel_id": "chan-pi-forge-local",
+  "task": {
+    "type": "data.compute",
+    "instruction": "Compute pi to 100 digits.",
+    "parameters": {"digits": 100}
+  },
+  "context": []
+}
