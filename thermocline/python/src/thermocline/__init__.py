@@ -6,13 +6,15 @@ ports) import only from this module. The full lock-in surface is::
     from thermocline import (
         Task, TaskResult, Job, JobResult, ErrorEnvelope, ContentBlock,
         Sensitive, KeyScheme, SUPPORTED_VERSIONS, EnvelopeError,
+        canonicalize,
     )
 
-(Plan 02 will add ``canonicalize``; Plan 03 will add ``IdentityProvider``,
-``Receipt``, ``Signature``, and the brine adapter.)
+(Plan 03 will add ``IdentityProvider``, ``Receipt``, ``Signature``, and the
+brine adapter.)
 """
 from __future__ import annotations
 
+from .canonical import canonicalize
 from .envelope import (
     ContentBlock,
     ErrorEnvelope,
@@ -50,6 +52,8 @@ __all__ = [
     # Version registry.
     "SUPPORTED_VERSIONS",
     "validate_version",
+    # Canonical JSON (Plan 02 — the single signing-input path).
+    "canonicalize",
     # Exception hierarchy (codes are part of the public API).
     "EnvelopeError",
     "UnsupportedVersionError",
