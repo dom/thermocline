@@ -1,0 +1,283 @@
+{
+  "$defs": {
+    "ContentBlock": {
+      "additionalProperties": false,
+      "description": "A single context entry inside ``Task.context[]`` or job ``step.context[]``.\n\nA block carries either ``content`` (tier-2 public bytes, wrapped in\n:class:`Sensitive` so repr/log calls don't leak it) OR ``shadow`` (tier-1\nabstraction). Tier-0 (``local``) content never appears in an envelope: the\nPhotophore policy engine strips it before signing.",
+      "properties": {
+        "content": {
+          "anyOf": [
+            {
+              "contentEncoding": "base64",
+              "description": "Privacy-sensitive bytes serialized as a base64 ASCII string. Wrapped in a Sensitive[bytes] redaction container at runtime; downstream code unwraps via .reveal().",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "shadow": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/_Shadow"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tier": {
+          "enum": [
+            0,
+            1,
+            2
+          ],
+          "title": "Tier",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tier",
+        "role"
+      ],
+      "title": "ContentBlock",
+      "type": "object"
+    },
+    "KeyScheme": {
+      "description": "Signing scheme declared by a channel and carried in every signature block.\n\nPer Thermocline Design Constraint 8: key scheme is declared, never inferred.\nVerifiers MUST reject missing or unrecognized schemes; a channel's scheme is\nset at creation time and cannot change mid-session.",
+      "enum": [
+        "brine",
+        "pgp",
+        "x509",
+        "none"
+      ],
+      "title": "KeyScheme",
+      "type": "string"
+    },
+    "_DispatchSignature": {
+      "additionalProperties": false,
+      "description": "``dispatch_signature`` block carried on signed envelopes.\n\nPlan 03 implements signing; this model just round-trips the wire shape.",
+      "properties": {
+        "channel_id": {
+          "title": "Channel Id",
+          "type": "string"
+        },
+        "key_scheme": {
+          "$ref": "#/$defs/KeyScheme"
+        },
+        "node_id": {
+          "title": "Node Id",
+          "type": "string"
+        },
+        "policy_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Policy Hash"
+        },
+        "shadows_generated": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Shadows Generated",
+          "type": "array"
+        },
+        "sig": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sig"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key_scheme",
+        "node_id",
+        "channel_id",
+        "timestamp"
+      ],
+      "title": "_DispatchSignature",
+      "type": "object"
+    },
+    "_ResultPolicy": {
+      "additionalProperties": false,
+      "description": "``result_policy`` block \u2014 issuer-authored result handling rules.\n\nPhase 1 ships the model only; Photophore (Phase 2) authors policy values.",
+      "properties": {
+        "persist_to_shared": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Persist To Shared",
+          "type": "array"
+        },
+        "return_only": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Return Only",
+          "type": "array"
+        },
+        "strip_before_persist": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Strip Before Persist",
+          "type": "array"
+        }
+      },
+      "title": "_ResultPolicy",
+      "type": "object"
+    },
+    "_Shadow": {
+      "additionalProperties": false,
+      "description": "Photophore-generated shadow placed into a tier-1 ``ContentBlock``.\n\nSpec: ``thermocline/README.md`` \u00a7 Task Envelope (`shadow` substructure).\nPhotophore (Phase 2) generates these; thermocline-py only needs to round-\ntrip them.",
+      "properties": {
+        "abstraction": {
+          "title": "Abstraction",
+          "type": "string"
+        },
+        "content_type": {
+          "title": "Content Type",
+          "type": "string"
+        },
+        "relevance": {
+          "title": "Relevance",
+          "type": "number"
+        },
+        "shadow_id": {
+          "title": "Shadow Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "shadow_id",
+        "content_type",
+        "abstraction",
+        "relevance"
+      ],
+      "title": "_Shadow",
+      "type": "object"
+    },
+    "_TaskBlock": {
+      "additionalProperties": false,
+      "description": "Inner ``task`` block of the Task envelope.",
+      "properties": {
+        "instruction": {
+          "title": "Instruction",
+          "type": "string"
+        },
+        "parameters": {
+          "additionalProperties": true,
+          "title": "Parameters",
+          "type": "object"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "instruction"
+      ],
+      "title": "_TaskBlock",
+      "type": "object"
+    }
+  },
+  "$id": "https://thermocline.spec/schema/v0.3.1/task.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The ``task`` request envelope (single-shot).\n\nSpec: ``../README.md`` \u00a7 Task Envelope.",
+  "properties": {
+    "channel_id": {
+      "title": "Channel Id",
+      "type": "string"
+    },
+    "context": {
+      "items": {
+        "$ref": "#/$defs/ContentBlock"
+      },
+      "title": "Context",
+      "type": "array"
+    },
+    "dispatch_signature": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/_DispatchSignature"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "envelope_id": {
+      "title": "Envelope Id",
+      "type": "string"
+    },
+    "issued_at": {
+      "title": "Issued At",
+      "type": "string"
+    },
+    "issuer": {
+      "title": "Issuer",
+      "type": "string"
+    },
+    "result_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/_ResultPolicy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "task": {
+      "$ref": "#/$defs/_TaskBlock"
+    },
+    "thermocline": {
+      "title": "Thermocline",
+      "type": "string"
+    },
+    "type": {
+      "const": "task",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "thermocline",
+    "type",
+    "envelope_id",
+    "issued_at",
+    "issuer",
+    "channel_id",
+    "task"
+  ],
+  "title": "Task",
+  "type": "object"
+}

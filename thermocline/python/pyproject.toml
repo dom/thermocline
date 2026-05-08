@@ -1,0 +1,87 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "thermocline"
+version = "0.3.1"
+description = "Thermocline shared envelope library — Pydantic v2 models, RFC 8785 canonical JSON, IdentityProvider Protocol with brine reference adapter."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+readme = "README.md"
+authors = [
+    { name = "Thermocline Suite contributors" },
+]
+keywords = ["thermocline", "privacy", "envelope", "pydantic", "ed25519"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security :: Cryptography",
+    "Topic :: System :: Distributed Computing",
+]
+dependencies = [
+    "pydantic>=2.7,<3.0",
+    "pynacl>=1.5",
+    "rfc8785",
+    "jsonschema>=4.0",
+    "keyring>=25.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "hypothesis>=6.0",
+    "mypy>=1.10",
+    "ruff>=0.5",
+    "pip-audit",
+]
+
+[project.scripts]
+thermocline-build-schemas = "thermocline.scripts.build_schemas:main"
+
+[project.urls]
+Homepage = "https://github.com/dom/thermocline"
+Repository = "https://github.com/dom/thermocline"
+Issues = "https://github.com/dom/thermocline/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/thermocline"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/thermocline",
+    "README.md",
+    "pyproject.toml",
+]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+packages = ["thermocline"]
+
+[[tool.mypy.overrides]]
+# Tests are allowed to be looser than library code; ergonomics over rigor.
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
