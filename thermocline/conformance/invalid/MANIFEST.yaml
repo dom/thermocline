@@ -1,0 +1,74 @@
+# Invalid envelope fixtures — one per Thermocline AT-C threat-model surface.
+#
+# Each fixture, when parsed by a v0.3.1-compliant implementation, MUST produce
+# an error whose code matches `expect_error_code`. The manifest is the source
+# of truth for the expected code; the harness asserts that real implementation
+# behavior matches.
+#
+# Phase tagging:
+#   phase=1   → wired by Phase 1 harness (test_conformance_fixtures.py).
+#   phase=2+  → committed for future phases (Photophore audit log, dispatch
+#               coordinator, forge handlers); structurally validated only in
+#               Phase 1 (manifest references existing JSON, JSON parses).
+#
+# AT-C surface vocabulary follows ../../README.md ("Threat Model" section).
+fixtures:
+  - fixture: AT-C1-replayed-envelope.json
+    surface: AT-C1
+    description: "Replayed envelope — same envelope_id appears twice across dispatches; receiver MUST reject."
+    expect_error_code: "ENVELOPE_REPLAY"
+    phase: 2
+    notes: |
+      Replay detection is the receiver's responsibility; Photophore (Phase 2) dedupes by envelope_id
+      via the audit log. This fixture exercises the spec contract that envelope_id is unique per
+      dispatch — Phase 1 commits it for the Phase 2 audit-log dedupe test to wire against.
+
+  - fixture: AT-C2-tampered-signature.json
+    surface: AT-C2
+    description: "Tampered signature — envelope payload bytes do not match the signature bytes."
+    expect_error_code: "SIGNATURE_INVALID"
+    phase: 2
+    notes: |
+      Tamper detection lives in BrineProvider.verify (Phase 1 / IDENT-04). The fixture pairs an
+      envelope with a signature whose bytes do not match the canonical-JSON of the envelope. The
+      structural fixture (committed here) is the wire-shape; behavioral exercise lives in
+      tests/test_identity.py and the Phase 2 dispatch coordinator's verify-on-receive test.
+
+  - fixture: AT-C3-leaky-shadow.json
+    surface: AT-C3
+    description: "Shadow leakage — abstraction string contains identifying detail (proper noun, specific date)."
+    expect_error_code: "SHADOW_IRREVERSIBILITY_FAILED"
+    phase: 2
+    notes: |
+      Photophore's shadow-irreversibility test is the gate. This fixture is rejected at
+      shadow-generation time, not at envelope-parse time — Phase 1 commits the JSON for
+      Phase 2 to wire its irreversibility test against.
+
+  - fixture: AT-C4-key-scheme-mismatch.json
+    surface: AT-C4
+    description: "Declared key_scheme does not match the signature's actual scheme."
+    expect_error_code: "UNSUPPORTED_KEY_SCHEME"
+    phase: 1
+    notes: |
+      Verifier dispatch raises SchemeError(code=UNSUPPORTED_KEY_SCHEME) when the envelope's
+      declared key_scheme does not match the signature's claimed scheme. Wired end-to-end in
+      tests/test_identity_dispatch.py::test_verifier_rejects_envelope_signature_scheme_mismatch
+      and asserted structurally here.
+
+  - fixture: AT-C5-unsupported-version.json
+    surface: AT-C5
+    description: "Declared envelope version is not in SUPPORTED_VERSIONS."
+    expect_error_code: "UNSUPPORTED_VERSION"
+    phase: 1
+    notes: |
+      Task.parse_strict raises UnsupportedVersionError (code=UNSUPPORTED_VERSION) for any
+      thermocline value not in {"0.3.0", "0.3.1"}.
+
+  - fixture: AT-C6-extra-field.json
+    surface: AT-C6
+    description: "Extra (unknown) field in envelope; ConfigDict(extra='forbid') must reject."
+    expect_error_code: "EXTRA_FIELD_FORBIDDEN"
+    phase: 1
+    notes: |
+      Pydantic v2 raises ValidationError with type 'extra_forbidden' for any unknown field.
+      The manifest's expect_error_code maps to this Pydantic error type — the harness translates.

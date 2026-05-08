@@ -1,0 +1,27 @@
+{
+  "_at_c_surface": "AT-C3",
+  "_description": "Shadow leakage. The abstraction string contains identifying detail (proper noun 'Acme Corp', specific date '2026-04-15', specific dollar amount). Photophore's shadow-irreversibility test (Phase 2) must reject with SHADOW_IRREVERSIBILITY_FAILED before the envelope is signed and dispatched.",
+  "thermocline": "0.3.1",
+  "type": "task",
+  "envelope_id": "a1b2c3d4-0000-4000-8000-000000000003",
+  "issued_at": "2026-05-08T00:00:00Z",
+  "issuer": "my-sovereign-node",
+  "channel_id": "chan-pi-forge-local",
+  "task": {
+    "type": "text.summarize",
+    "instruction": "Summarize the provided document.",
+    "parameters": {}
+  },
+  "context": [
+    {
+      "tier": 1,
+      "role": "private_document",
+      "shadow": {
+        "shadow_id": "sh-leak-0001",
+        "content_type": "text/plain",
+        "abstraction": "Document about the Acme Corp Q2 2026 earnings call held 2026-04-15 noting $42.3M in revenue from CEO Jane Doe",
+        "relevance": 0.95
+      }
+    }
+  ]
+}

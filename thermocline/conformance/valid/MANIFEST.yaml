@@ -1,0 +1,17 @@
+# Valid request/response envelope pairs.
+#
+# Each entry pairs a request envelope with the expected response envelope shape.
+# Both files MUST validate against the JSON Schema artifacts under
+# ``thermocline/schema/`` AND against the Pydantic models in
+# ``thermocline.envelope`` (``Task.parse_strict`` / ``TaskResult.parse_strict``).
+#
+# Phase 4's full harness will round-trip these through a real forge; Phase 1's
+# harness validates structurally only.
+pairs:
+  - id: pi-100-digits
+    description: "Compute the first 100 digits of pi via pi-forge (key_scheme=none)."
+    request: task-pi-100-digits.json
+    response: task-result-pi-100-digits.json
+    schemas:
+      request: ../../schema/task.schema.json
+      response: ../../schema/task_result.schema.json

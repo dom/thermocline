@@ -6,6 +6,7 @@
 **Status:** RFC — Pre-release, seeking feedback
 **License:** MIT
 **Companion Specifications:** Photophore 0.3.0+ (policy engine) · Seamount 0.3.0+ (compute forge)
+**Changelog:** [thermocline/CHANGELOG.md](thermocline/CHANGELOG.md) — spec patches discovered during reference-implementation work
 
 ---
 
