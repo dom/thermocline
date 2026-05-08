@@ -13,6 +13,14 @@ ports) import only from this module. The full lock-in surface is::
 """
 from __future__ import annotations
 
+from .envelope import (
+    ContentBlock,
+    ErrorEnvelope,
+    Job,
+    JobResult,
+    Task,
+    TaskResult,
+)
 from .errors import (
     CanonicalizationError,
     EnvelopeError,
@@ -27,34 +35,14 @@ from .version import SUPPORTED_VERSIONS, validate_version
 
 __version__ = "0.3.1"
 
-# Envelope models (Pydantic v2) live in .envelope. Task 2 of plan 01 adds
-# the module and the names below; until then, downstream callers that expect
-# Task / TaskResult / Job / JobResult / ErrorEnvelope / ContentBlock from
-# `thermocline` get an ImportError. The package is otherwise fully usable.
-_envelope_names: list[str]
-try:
-    from .envelope import (  # type: ignore[import-not-found,unused-ignore]
-        ContentBlock,
-        ErrorEnvelope,
-        Job,
-        JobResult,
-        Task,
-        TaskResult,
-    )
-
-    _envelope_names = [
-        "Task",
-        "TaskResult",
-        "Job",
-        "JobResult",
-        "ErrorEnvelope",
-        "ContentBlock",
-    ]
-except ImportError:
-    _envelope_names = []
-
 __all__ = [
-    *_envelope_names,
+    # Envelope shapes (Pydantic v2 models from .envelope).
+    "Task",
+    "TaskResult",
+    "Job",
+    "JobResult",
+    "ErrorEnvelope",
+    "ContentBlock",
     # Privacy primitive.
     "Sensitive",
     # Key-scheme enum.
