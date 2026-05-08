@@ -123,7 +123,35 @@ class Sensitive(Generic[T]):
                 when_used="json",
                 return_schema=core_schema.str_schema(),
             ),
+            metadata={
+                # Pydantic uses this hint when generating JSON Schema artifacts
+                # (build_schemas.py): the wire format for Sensitive[bytes] is a
+                # base64 ASCII string.
+                "pydantic_js_input_core_schema": core_schema.str_schema(),
+            },
         )
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls,
+        schema: core_schema.CoreSchema,  # noqa: ARG003
+        handler: Any,  # noqa: ARG003
+    ) -> dict[str, Any]:
+        """Return JSON Schema for Sensitive[bytes] (base64 ASCII string).
+
+        Used by build_schemas.py to render envelope schemas. The wire format
+        is byte-for-byte identical to a non-wrapped impl that base64-encodes
+        raw bytes — documented in the description.
+        """
+        return {
+            "type": "string",
+            "contentEncoding": "base64",
+            "description": (
+                "Privacy-sensitive bytes serialized as a base64 ASCII string. "
+                "Wrapped in a Sensitive[bytes] redaction container at runtime; "
+                "downstream code unwraps via .reveal()."
+            ),
+        }
 
 
 __all__ = ["Sensitive"]

@@ -1,0 +1,76 @@
+{
+  "$defs": {
+    "_ErrorBody": {
+      "additionalProperties": false,
+      "description": "Inner ``error`` block of an error envelope.",
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "_ErrorBody",
+      "type": "object"
+    }
+  },
+  "$id": "https://thermocline.spec/schema/v0.3.1/error.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Structured error response.\n\nMirrors pi-forge's ``task_error`` envelope (the spec README does not yet\nformalize one \u2014 THERMO-01 carry-over candidate). Phase 2/3 may extend\nwith ``references`` if the spec adds them.",
+  "properties": {
+    "envelope_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Envelope Id"
+    },
+    "error": {
+      "$ref": "#/$defs/_ErrorBody"
+    },
+    "job_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Job Id"
+    },
+    "thermocline": {
+      "title": "Thermocline",
+      "type": "string"
+    },
+    "type": {
+      "default": "task_error",
+      "enum": [
+        "task_error",
+        "job_error"
+      ],
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "thermocline",
+    "error"
+  ],
+  "title": "ErrorEnvelope",
+  "type": "object"
+}

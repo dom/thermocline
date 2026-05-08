@@ -1,0 +1,421 @@
+{
+  "$defs": {
+    "ContentBlock": {
+      "additionalProperties": false,
+      "description": "A single context entry inside ``Task.context[]`` or job ``step.context[]``.\n\nA block carries either ``content`` (tier-2 public bytes, wrapped in\n:class:`Sensitive` so repr/log calls don't leak it) OR ``shadow`` (tier-1\nabstraction). Tier-0 (``local``) content never appears in an envelope: the\nPhotophore policy engine strips it before signing.",
+      "properties": {
+        "content": {
+          "anyOf": [
+            {
+              "contentEncoding": "base64",
+              "description": "Privacy-sensitive bytes serialized as a base64 ASCII string. Wrapped in a Sensitive[bytes] redaction container at runtime; downstream code unwraps via .reveal().",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "shadow": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/_Shadow"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tier": {
+          "enum": [
+            0,
+            1,
+            2
+          ],
+          "title": "Tier",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tier",
+        "role"
+      ],
+      "title": "ContentBlock",
+      "type": "object"
+    },
+    "KeyScheme": {
+      "description": "Signing scheme declared by a channel and carried in every signature block.\n\nPer Thermocline Design Constraint 8: key scheme is declared, never inferred.\nVerifiers MUST reject missing or unrecognized schemes; a channel's scheme is\nset at creation time and cannot change mid-session.",
+      "enum": [
+        "brine",
+        "pgp",
+        "x509",
+        "none"
+      ],
+      "title": "KeyScheme",
+      "type": "string"
+    },
+    "_DispatchSignature": {
+      "additionalProperties": false,
+      "description": "``dispatch_signature`` block carried on signed envelopes.\n\nPlan 03 implements signing; this model just round-trips the wire shape.",
+      "properties": {
+        "channel_id": {
+          "title": "Channel Id",
+          "type": "string"
+        },
+        "key_scheme": {
+          "$ref": "#/$defs/KeyScheme"
+        },
+        "node_id": {
+          "title": "Node Id",
+          "type": "string"
+        },
+        "policy_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Policy Hash"
+        },
+        "shadows_generated": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Shadows Generated",
+          "type": "array"
+        },
+        "sig": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sig"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "string"
+        }
+      },
+      "required": [
+        "key_scheme",
+        "node_id",
+        "channel_id",
+        "timestamp"
+      ],
+      "title": "_DispatchSignature",
+      "type": "object"
+    },
+    "_JobConstraints": {
+      "additionalProperties": false,
+      "properties": {
+        "may_access": {
+          "items": {
+            "type": "string"
+          },
+          "title": "May Access",
+          "type": "array"
+        },
+        "may_not_access": {
+          "items": {
+            "type": "string"
+          },
+          "title": "May Not Access",
+          "type": "array"
+        },
+        "privacy_fence": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Privacy Fence"
+        }
+      },
+      "title": "_JobConstraints",
+      "type": "object"
+    },
+    "_JobOutputContract": {
+      "additionalProperties": false,
+      "properties": {
+        "destination": {
+          "title": "Destination",
+          "type": "string"
+        },
+        "format": {
+          "title": "Format",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "format",
+        "destination"
+      ],
+      "title": "_JobOutputContract",
+      "type": "object"
+    },
+    "_Manifest": {
+      "additionalProperties": false,
+      "properties": {
+        "constraints": {
+          "$ref": "#/$defs/_JobConstraints"
+        },
+        "intent": {
+          "title": "Intent",
+          "type": "string"
+        },
+        "output_contract": {
+          "$ref": "#/$defs/_JobOutputContract"
+        },
+        "result_policy": {
+          "$ref": "#/$defs/_ResultPolicy"
+        },
+        "timeout_seconds": {
+          "title": "Timeout Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "intent",
+        "output_contract",
+        "constraints",
+        "result_policy",
+        "timeout_seconds"
+      ],
+      "title": "_Manifest",
+      "type": "object"
+    },
+    "_ResultPolicy": {
+      "additionalProperties": false,
+      "description": "``result_policy`` block \u2014 issuer-authored result handling rules.\n\nPhase 1 ships the model only; Photophore (Phase 2) authors policy values.",
+      "properties": {
+        "persist_to_shared": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Persist To Shared",
+          "type": "array"
+        },
+        "return_only": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Return Only",
+          "type": "array"
+        },
+        "strip_before_persist": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Strip Before Persist",
+          "type": "array"
+        }
+      },
+      "title": "_ResultPolicy",
+      "type": "object"
+    },
+    "_Shadow": {
+      "additionalProperties": false,
+      "description": "Photophore-generated shadow placed into a tier-1 ``ContentBlock``.\n\nSpec: ``thermocline/README.md`` \u00a7 Task Envelope (`shadow` substructure).\nPhotophore (Phase 2) generates these; thermocline-py only needs to round-\ntrip them.",
+      "properties": {
+        "abstraction": {
+          "title": "Abstraction",
+          "type": "string"
+        },
+        "content_type": {
+          "title": "Content Type",
+          "type": "string"
+        },
+        "relevance": {
+          "title": "Relevance",
+          "type": "number"
+        },
+        "shadow_id": {
+          "title": "Shadow Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "shadow_id",
+        "content_type",
+        "abstraction",
+        "relevance"
+      ],
+      "title": "_Shadow",
+      "type": "object"
+    },
+    "_Step": {
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "items": {
+            "$ref": "#/$defs/ContentBlock"
+          },
+          "title": "Context",
+          "type": "array"
+        },
+        "depends_on": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "input": {
+          "$ref": "#/$defs/_StepInput"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "params": {
+          "additionalProperties": true,
+          "title": "Params",
+          "type": "object"
+        },
+        "passthrough": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Passthrough",
+          "type": "array"
+        },
+        "step_id": {
+          "title": "Step Id",
+          "type": "string"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "step_id",
+        "label",
+        "tool",
+        "input"
+      ],
+      "title": "_Step",
+      "type": "object"
+    },
+    "_StepInput": {
+      "additionalProperties": false,
+      "properties": {
+        "field": {
+          "title": "Field",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "field"
+      ],
+      "title": "_StepInput",
+      "type": "object"
+    }
+  },
+  "$id": "https://thermocline.spec/schema/v0.3.1/job.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The ``job`` multi-step manifest envelope.\n\nSpec: ``../README.md`` \u00a7 Job Envelope. v0.1 ships the type only; full\njob-handling logic is v0.2 (see PROJECT.md \"Out of Scope\").",
+  "properties": {
+    "channel_id": {
+      "title": "Channel Id",
+      "type": "string"
+    },
+    "dispatch_signature": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/_DispatchSignature"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "issued_at": {
+      "title": "Issued At",
+      "type": "string"
+    },
+    "issuer": {
+      "title": "Issuer",
+      "type": "string"
+    },
+    "job_id": {
+      "title": "Job Id",
+      "type": "string"
+    },
+    "manifest": {
+      "$ref": "#/$defs/_Manifest"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/_Step"
+      },
+      "title": "Steps",
+      "type": "array"
+    },
+    "thermocline": {
+      "title": "Thermocline",
+      "type": "string"
+    },
+    "type": {
+      "const": "job",
+      "title": "Type",
+      "type": "string"
+    }
+  },
+  "required": [
+    "thermocline",
+    "type",
+    "job_id",
+    "issued_at",
+    "issuer",
+    "channel_id",
+    "manifest",
+    "steps"
+  ],
+  "title": "Job",
+  "type": "object"
+}
