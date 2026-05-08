@@ -6,11 +6,13 @@ ports) import only from this module. The full lock-in surface is::
     from thermocline import (
         Task, TaskResult, Job, JobResult, ErrorEnvelope, ContentBlock,
         Sensitive, KeyScheme, SUPPORTED_VERSIONS, EnvelopeError,
-        canonicalize,
+        canonicalize, CanonicalizationError,
+        IdentityProvider, BrineProvider, Verifier, Signature, Receipt,
+        IdentityError, SchemeError, KeystoreUnavailableError,
     )
 
-(Plan 03 will add ``IdentityProvider``, ``Receipt``, ``Signature``, and the
-brine adapter.)
+Plan 03 (this plan) added the identity primitives — Protocol, Verifier, brine
+adapter, Signature/Receipt value types, plus the typed identity exceptions.
 """
 from __future__ import annotations
 
@@ -30,6 +32,13 @@ from .errors import (
     KeystoreUnavailableError,
     SchemeError,
     UnsupportedVersionError,
+)
+from .identity import (
+    BrineProvider,
+    IdentityProvider,
+    Receipt,
+    Signature,
+    Verifier,
 )
 from .schemes import KeyScheme
 from .sensitive import Sensitive
@@ -54,6 +63,12 @@ __all__ = [
     "validate_version",
     # Canonical JSON (Plan 02 — the single signing-input path).
     "canonicalize",
+    # Identity primitives (Plan 03).
+    "IdentityProvider",
+    "BrineProvider",
+    "Verifier",
+    "Signature",
+    "Receipt",
     # Exception hierarchy (codes are part of the public API).
     "EnvelopeError",
     "UnsupportedVersionError",
