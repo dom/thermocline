@@ -10,7 +10,7 @@ The journey is from three published specs at v0.3.0-draft (Thermocline · Photop
 - Integer phases (1, 2, 3, 4): Planned milestone work
 - Decimal phases (e.g., 2.1): Reserved for urgent insertions only (none planned)
 
-- [ ] **Phase 1: `thermocline-py` Foundations** — Shared library (envelope types, canonical JSON, brine, IdentityProvider) + JSON Schema artifacts + spec patches. Lives in `thermocline/python/`.
+- [x] **Phase 1: `thermocline-py` Foundations** — Shared library (envelope types, canonical JSON, brine, IdentityProvider) + JSON Schema artifacts + spec patches. Lives in `thermocline/python/`. (completed 2026-05-09)
 - [ ] **Phase 2: Photophore Privacy Primitives + Foundations** — Channels (trust store), audit log (chained), classifier, shadow generator, policy authoring. Lives in `photophore/python/`.
 - [ ] **Phase 3: Photophore Dispatch + Seamount Upgrade** — End-to-end integration: dispatch coordinator + `pi-forge` real brine + new `describe-forge`. Spans `photophore/` and `seamount/`.
 - [ ] **Phase 4: Hardening, Conformance, and v0.1 Release** — Property tests + 17 AT-* negative tests + cross-suite conformance harness + ADRs + ops docs + three coordinated v0.1 git tags.
@@ -42,7 +42,7 @@ Plans:
 - [x] 01-01: Workspace skeleton + `thermocline/python/` package scaffold + envelope types (Pydantic v2) for task / task_result / job / job_result / error + JSON Schema artifact generation under `thermocline/schema/`.
 - [x] 01-02: Canonical JSON (`thermocline.canonical.canonicalize` via `rfc8785`) + Hypothesis round-trip stability tests + canonical-JSON CI lint forbidding `json.dumps` outside explicitly non-signing paths.
 - [x] 01-03: `IdentityProvider` Protocol + brine reference adapter (PyNaCl + python-keyring) + key-scheme dispatch on verify + `Receipt` value type with private constructor + initial conformance fixture set under `thermocline/conformance/{valid,invalid}/`.
-- [ ] 01-04: Gap closure for BL-01..BL-04 — separate public-key store on `BrineProvider` (cross-role verify), nested `key_scheme` lookup in `Verifier.verify` for real Task / TaskResult envelopes, `isinstance` keystore probe against real `keyring.backends.fail.Keyring` / `null.Keyring`, and clobber-safe `generate()` + explicit `rotate()`.
+- [x] 01-04: Gap closure for BL-01..BL-04 — separate public-key store on `BrineProvider` (cross-role verify), nested `key_scheme` lookup in `Verifier.verify` for real Task / TaskResult envelopes, `isinstance` keystore probe against real `keyring.backends.fail.Keyring` / `null.Keyring`, and clobber-safe `generate()` + explicit `rotate()`.
 
 ---
 
@@ -138,7 +138,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. `thermocline-py` Foundations | 0/3 | Not started | - |
+| 1. `thermocline-py` Foundations | 4/4 | Complete   | 2026-05-09 |
 | 2. Photophore Privacy Primitives + Foundations | 0/3 | Not started | - |
 | 3. Photophore Dispatch + Seamount Upgrade | 0/2 | Not started | - |
 | 4. Hardening, Conformance, and v0.1 Release | 0/2 | Not started | - |
