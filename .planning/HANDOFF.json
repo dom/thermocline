@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-05-09T05:14:01.135Z",
+  "phase": "01",
+  "phase_name": "thermocline-py-foundations",
+  "phase_dir": ".planning/phases/01-thermocline-py-foundations",
+  "plan": "01-04",
+  "task": 6,
+  "total_tasks": 6,
+  "status": "phase_complete",
+  "completed_tasks": [
+    {"id": 1, "name": "Task 1 (Wave 0): Shared brine_in_memory_keyring fixture in tests/conftest.py", "status": "done", "commit": "50c2539"},
+    {"id": 2, "name": "Task 2 (BL-01): Separate public-key store on BrineProvider — register_public_key API", "status": "done", "commit": "f79bc4a"},
+    {"id": 3, "name": "Task 3 (BL-02): Verifier reads key_scheme from canonical nested location for real envelopes", "status": "done", "commit": "1788fa2"},
+    {"id": 4, "name": "Task 4 (BL-03): isinstance probe replaces substring keystore heuristic", "status": "done", "commit": "56f693b"},
+    {"id": 5, "name": "Task 5 (BL-04): generate refuses clobber, add explicit rotate()", "status": "done", "commit": "4fb3938"},
+    {"id": 6, "name": "Task 6: CHANGELOG records BL-01..BL-04 gap closure under v0.3.1", "status": "done", "commit": "c0f7631"}
+  ],
+  "remaining_tasks": [],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {
+      "decision": "BL-01 — separate public-key store on BrineProvider via _PUBKEY_PREFIX namespace; register_public_key API is the documented foreign-key path; public_key() consults pubkey store first, falls back to seed-derived for self-signing",
+      "rationale": "Cross-role verification (verifier-only role with no seed) was structurally impossible because public_key() read the seed and derived the verify key — direct violation of 'the public key is the node identity — share it freely'. Phase 3 SC3 (cross-role round-trip Photophore → pi-forge) blocked until this landed.",
+      "phase": "01"
+    },
+    {
+      "decision": "BL-02 — Verifier._declared_scheme staticmethod with type-routed lookup (task/job → dispatch_signature.key_scheme; task_result/job_result → receipt_signature.key_scheme; task_error/job_error → None); top-level fallback retained for synthetic flat-dict tests AND typed envelopes whose nested block is absent or empty",
+      "rationale": "Real envelopes nest key_scheme; the original top-level read produced SchemeError on every legitimate signed envelope. Fallback rule preserves all 5 named _minimal_envelope tests in test_identity_brine_roundtrip.py without churning them.",
+      "phase": "01"
+    },
+    {
+      "decision": "BL-03 — isinstance(backend, (keyring.backends.fail.Keyring, keyring.backends.null.Keyring)) replaces the substring-on-__name__ heuristic",
+      "rationale": "Both production classes are named 'Keyring' (substring 'fail'/'null' matches neither). Substring check fell open silently in headless Linux / no-D-Bus deployments — exactly the IDENT-05 failure mode the spec requires be rejected.",
+      "phase": "01"
+    },
+    {
+      "decision": "BL-04 — generate() raises IdentityError(IDENTITY_ALREADY_EXISTS) when seed already present; new rotate() method is the only documented overwrite path; pubkey store entries are independent (different keystore key) and untouched by rotate",
+      "rationale": "generate()'s silent set_password destroyed prior signing identity on re-run of setup scripts — foreseeable data-loss path. Key rotation should be a deliberate, audited operation.",
+      "phase": "01"
+    },
+    {
+      "decision": "Plan 01-04 task ordering: conftest → BL-01 → BL-02 → BL-03 → BL-04 → CHANGELOG (Wave 0 → 5)",
+      "rationale": "Task 3 (BL-02) tests call register_public_key which lands in Task 2 (BL-01). Task 2's headline cross-role test uses a DUAL-FORM envelope (top-level + nested key_scheme) so it survives the OLD top-level Verifier.verify lookup that's still in place at Task 2 land-time. After Task 3 lands, both forms continue to work via the new _declared_scheme fallback.",
+      "phase": "01"
+    }
+  ],
+  "uncommitted_files": [],
+  "next_action": "Decide on Phase 2 entry: run /gsd-extract-learnings 1 to capture decisions/patterns/lessons from Phase 1 into LEARNINGS.md before starting Phase 2; then /gsd-discuss-phase 2 to begin Photophore Privacy Primitives + Foundations.",
+  "context_notes": "Phase 1 verification flipped from gaps_found (3/5) to pass (5/5). All 12 phase requirements (THERMO-01..07, IDENT-01..05) SATISFIED. Test count: 117 baseline → 142 after gap closure (25 new tests). mypy --strict clean across 11 source files. The execute-phase workflow was invoked with --no-transition, so auto-advance did NOT chain into Phase 2 — that decision is left to the user. No work-in-progress; working tree clean."
+}
