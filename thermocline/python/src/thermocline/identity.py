@@ -211,6 +211,12 @@ class Verifier:
     ) -> Receipt | None:
         """Verify ``signature`` against ``envelope`` via the appropriate provider.
 
+        BL-02 closure: ``key_scheme`` lookup is canonical-location-aware via
+        :meth:`_declared_scheme` -- routes by ``envelope.get('type')`` to the
+        nested ``dispatch_signature`` / ``receipt_signature`` block, with a
+        documented top-level fallback for synthetic flat-dict tests and for
+        typed envelopes whose nested block is absent or empty.
+
         Raises
         ------
         SchemeError
@@ -218,7 +224,7 @@ class Verifier:
             signature's actual scheme, or if no provider is registered for
             the signature's scheme.
         """
-        declared = envelope.get("key_scheme")
+        declared = self._declared_scheme(envelope)
         if declared != signature.scheme.value:
             raise SchemeError(
                 f"declared key scheme {declared!r} does not match signature scheme "
@@ -232,6 +238,58 @@ class Verifier:
                 code="UNSUPPORTED_KEY_SCHEME",
             )
         return provider.verify(envelope=envelope, signature=signature)
+
+    @staticmethod
+    def _declared_scheme(envelope: dict[str, Any]) -> str | None:
+        """Read the declared ``key_scheme`` from the canonical nested location.
+
+        Lookup table by envelope ``type`` (BL-02 closure -- exhaustive over
+        the five envelope types defined in :mod:`thermocline.envelope`):
+
+        * ``task``, ``job`` -> ``envelope['dispatch_signature']['key_scheme']``
+        * ``task_result``, ``job_result`` ->
+          ``envelope['receipt_signature']['key_scheme']``
+        * ``task_error``, ``job_error`` (the two ``ErrorEnvelope.type``
+          discriminator values per ``envelope.py``) -> ``None``. Error
+          envelopes are unsigned by spec; the verifier should never be
+          called on one. Returning ``None`` surfaces the misuse as
+          :class:`SchemeError` (because ``None != signature.scheme.value``).
+
+        Fallback rule: when the envelope has NO ``type`` field, OR the
+        canonical nested signature block is absent / empty / has no
+        ``key_scheme`` key, the helper falls back to top-level
+        ``envelope.get('key_scheme')``. This is the only sanctioned
+        deviation from the spec's nested layout -- preserved so existing
+        tests whose envelopes carry ``type='task'`` + top-level
+        ``key_scheme`` but NO ``dispatch_signature`` block continue to pass
+        (e.g., ``test_identity_brine_roundtrip._minimal_envelope``).
+        """
+        env_type = envelope.get("type")
+        if env_type in ("task", "job"):
+            block = envelope.get("dispatch_signature")
+            if isinstance(block, dict):
+                scheme = block.get("key_scheme")
+                if scheme is not None:
+                    return str(scheme)
+            # Nested block is absent / empty / lacks key_scheme -- fall
+            # through to the top-level fallback (preserves existing
+            # _minimal_envelope tests).
+            top = envelope.get("key_scheme")
+            return str(top) if top is not None else None
+        if env_type in ("task_result", "job_result"):
+            block = envelope.get("receipt_signature")
+            if isinstance(block, dict):
+                scheme = block.get("key_scheme")
+                if scheme is not None:
+                    return str(scheme)
+            top = envelope.get("key_scheme")
+            return str(top) if top is not None else None
+        if env_type in ("task_error", "job_error"):
+            # Error envelopes are unsigned by spec.
+            return None
+        # No ``type`` field -- synthetic flat-dict test path (tolerated).
+        top = envelope.get("key_scheme")
+        return str(top) if top is not None else None
 
 
 # ---------------------------------------------------------------------------

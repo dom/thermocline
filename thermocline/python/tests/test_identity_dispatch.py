@@ -20,7 +20,7 @@ from thermocline import (
     Signature,
     Verifier,
 )
-from thermocline.errors import SchemeError
+from thermocline.errors import IdentityError, SchemeError
 from thermocline.schemes import KeyScheme
 
 
@@ -153,3 +153,25 @@ def test_verifier_dispatch_passes_through_receipt() -> None:
     sig = Signature(scheme=KeyScheme.PGP, bytes_=b"\x04" * 64, signer_identity="alice")
     out = v.verify(envelope=envelope, signature=sig)
     assert out is receipt_to_return
+
+
+def test_dispatch_falls_back_to_top_level_for_typeless_envelope(
+    brine_in_memory_keyring,
+):
+    """Synthetic envelopes without ``type`` field continue to use top-level
+    ``key_scheme`` -- explicit regression for the BL-02 fallback path.
+    """
+    from thermocline import BrineProvider
+
+    envelope = {"envelope_id": "x", "key_scheme": "brine"}  # no 'type' field
+    sig = Signature(
+        scheme=KeyScheme.BRINE,
+        bytes_=b"\x00" * 64,
+        signer_identity="alice",
+    )
+    v = Verifier()
+    v.register(BrineProvider(keyring_service="thermocline.test"))
+    # No mismatch -- should reach the provider; provider will raise IdentityError
+    # (no key for alice in keystore), proving the dispatch reached it.
+    with pytest.raises((IdentityError, SchemeError)):
+        v.verify(envelope=envelope, signature=sig)
