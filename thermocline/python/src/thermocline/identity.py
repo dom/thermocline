@@ -244,6 +244,12 @@ class Verifier:
 
 _KEYSTORE_SERVICE_DEFAULT: Final[str] = "thermocline.brine"
 
+#: Keystore-key prefix for *public* verify keys registered via
+#: :meth:`BrineProvider.register_public_key`. Public-key entries live in
+#: the SAME keystore service but under this prefix, so they cannot collide
+#: with seed entries (seed entries use the bare identity string).
+_PUBKEY_PREFIX: Final[str] = "pubkey:"
+
 
 class BrineProvider:
     """Ed25519 IdentityProvider backed by ``python-keyring``.
@@ -312,9 +318,46 @@ class BrineProvider:
     def public_key(self, *, identity: str) -> bytes:
         """Return the 32-byte Ed25519 verify key for ``identity``.
 
-        Raises :class:`IdentityError` (code ``IDENTITY_NOT_FOUND``) if the
-        identity has no key in the keystore.
+        Lookup order (BL-01 closure -- load-bearing):
+
+        1. Public-key store -- ``keyring.get_password(self._keyring_service,
+           _PUBKEY_PREFIX + identity)``. Populated by
+           :meth:`register_public_key`. This is the path a verifier-only role
+           takes -- it holds public keys for other nodes without ever holding
+           their seeds.
+        2. Seed store -- ``keyring.get_password(self._keyring_service,
+           identity)``. Populated by :meth:`generate`. The verify key is
+           derived from the seed. This is the same-node self-signing path
+           (the original behaviour).
+
+        A node that holds BOTH a registered public key AND a seed for the
+        same identity returns the registered public key (verify-role takes
+        precedence). The lookup-order invariant is exercised by
+        ``test_pubkey_store_is_consulted_before_seed`` in
+        ``test_identity_cross_role.py``.
+
+        Raises :class:`IdentityError` (code ``IDENTITY_NOT_FOUND``) when both
+        are absent.
         """
+        pub_hex = keyring.get_password(
+            self._keyring_service, _PUBKEY_PREFIX + identity
+        )
+        if pub_hex is not None:
+            try:
+                verify_key_bytes = bytes.fromhex(pub_hex)
+            except ValueError as exc:
+                raise IdentityError(
+                    f"corrupted public-key entry for identity {identity!r}: not hex",
+                    code="IDENTITY_NOT_FOUND",
+                ) from exc
+            if len(verify_key_bytes) != 32:
+                raise IdentityError(
+                    f"corrupted public-key entry for identity {identity!r}: "
+                    f"expected 32 bytes, got {len(verify_key_bytes)}",
+                    code="IDENTITY_NOT_FOUND",
+                )
+            return verify_key_bytes
+
         seed_hex = keyring.get_password(self._keyring_service, identity)
         if seed_hex is None:
             raise IdentityError(
@@ -325,6 +368,49 @@ class BrineProvider:
         verify_key_bytes = bytes(signing_key.verify_key)
         del signing_key
         return verify_key_bytes
+
+    def register_public_key(
+        self, *, identity: str, verify_key: bytes
+    ) -> None:
+        """Register a foreign node's Ed25519 verify key under ``identity``.
+
+        BL-01 closure: this is the documented path by which a verifier-only
+        role acquires another node's identity material. Public-key entries
+        live under a separate namespace (``_PUBKEY_PREFIX + identity``) so
+        they do not collide with seed entries.
+
+        Parameters
+        ----------
+        identity
+            Stable identity string for the foreign node -- same value the
+            foreign node passes to ``sign(signer_identity=...)``.
+        verify_key
+            Exactly 32 bytes -- the Ed25519 verify key (NOT the seed).
+            Typically obtained out-of-band from the foreign node's
+            :meth:`public_key` call.
+
+        Raises
+        ------
+        IdentityError
+            Code ``INVALID_VERIFY_KEY`` if ``verify_key`` is not exactly 32
+            bytes.
+        """
+        if not isinstance(verify_key, (bytes, bytearray)) or len(verify_key) != 32:
+            length = (
+                len(verify_key)
+                if isinstance(verify_key, (bytes, bytearray))
+                else "N/A"
+            )
+            raise IdentityError(
+                f"verify_key must be exactly 32 bytes; got "
+                f"{type(verify_key).__name__} of length {length}",
+                code="INVALID_VERIFY_KEY",
+            )
+        keyring.set_password(
+            self._keyring_service,
+            _PUBKEY_PREFIX + identity,
+            bytes(verify_key).hex(),
+        )
 
     def sign(
         self, *, envelope: dict[str, Any], signer_identity: str
