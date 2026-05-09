@@ -367,17 +367,71 @@ class BrineProvider:
     def generate(self, *, identity: str) -> None:
         """Generate a new Ed25519 keypair and store the seed in the keystore.
 
+        BL-04 closure: refuses to clobber an existing seed. Re-generating an
+        identity is a deliberate, audited operation -- use :meth:`rotate`
+        instead. Calling ``generate`` on an identity that already has a seed
+        raises ``IdentityError(code='IDENTITY_ALREADY_EXISTS')``. Closes a
+        foreseeable data-loss path: re-running a setup script no longer
+        destroys the prior signing identity.
+
         The 32-byte signing seed is hex-encoded and handed straight to
         ``keyring.set_password``; we drop our reference immediately. Python's
         garbage collector does not zero memory, so the ``del`` is a hygiene
-        marker rather than a guarantee — it documents intent and reviewers
+        marker rather than a guarantee -- it documents intent and reviewers
         will catch additions that retain references.
+
+        Raises
+        ------
+        IdentityError
+            Code ``IDENTITY_ALREADY_EXISTS`` if a seed already exists at
+            ``(self._keyring_service, identity)``.
         """
+        existing = keyring.get_password(self._keyring_service, identity)
+        if existing is not None:
+            raise IdentityError(
+                f"identity {identity!r} already has a seed; "
+                "use rotate() to replace it deliberately",
+                code="IDENTITY_ALREADY_EXISTS",
+            )
         signing_key = nacl.signing.SigningKey.generate()
         keyring.set_password(
             self._keyring_service, identity, signing_key.encode().hex()
         )
         del signing_key
+
+    def rotate(self, *, identity: str) -> None:
+        """Replace the seed for ``identity`` with a freshly-generated one.
+
+        BL-04: this is the ONLY documented path that overwrites an existing
+        seed. The previous behaviour -- ``generate`` silently overwriting --
+        was a foreseeable data-loss path. Use ``rotate`` for deliberate
+        replacement.
+
+        Post-condition: the seed stored at ``(self._keyring_service,
+        identity)`` is different from the seed that was there before this
+        call. Any :meth:`register_public_key` entry for the same identity is
+        independent (it lives under a different keystore key, namespaced by
+        ``_PUBKEY_PREFIX``) and is NOT touched by this call -- the
+        seed-vs-public-key orthogonality is the BL-01 lookup-order invariant.
+
+        Raises
+        ------
+        IdentityError
+            Code ``IDENTITY_NOT_FOUND`` if no seed exists for ``identity`` to
+            rotate. (Use :meth:`generate` first.)
+        """
+        existing = keyring.get_password(self._keyring_service, identity)
+        if existing is None:
+            raise IdentityError(
+                f"cannot rotate identity {identity!r}: no seed exists "
+                "(use generate() first)",
+                code="IDENTITY_NOT_FOUND",
+            )
+        new_signing_key = nacl.signing.SigningKey.generate()
+        keyring.set_password(
+            self._keyring_service, identity, new_signing_key.encode().hex()
+        )
+        del new_signing_key
 
     def public_key(self, *, identity: str) -> bytes:
         """Return the 32-byte Ed25519 verify key for ``identity``.
