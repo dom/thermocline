@@ -58,6 +58,42 @@ commit cadence (THERMO-01 carry-over).
   a nested `error: {code, message}` block. The reference impl ships
   `ErrorEnvelope` with that shape; spec promotion is a THERMO-01 carry-over.
 
+### Plan 01-04 gap closure (BL-01..BL-04)
+
+Phase 1 verification (`/gsd-verify-phase 1`) reported `status: gaps_found`,
+`score: 3/5 must-haves verified`. Plan 01-04 closes the four gaps. See
+`.planning/phases/01-thermocline-py-foundations/01-VERIFICATION.md` for the
+full report.
+
+- **BL-01** (IDENT-02) — `BrineProvider` separates the public-key store from
+  the seed store. New `register_public_key(identity, verify_key)` API;
+  `public_key()` consults the public-key store first and falls back to
+  seed-derivation only for single-node self-signing flows. A verifier-only
+  role can now verify foreign signatures without holding the signer's seed
+  (IDENT-02 architectural intent restored; Phase 3 SC3 unblocked).
+- **BL-02** (IDENT-03) — `Verifier.verify` reads the declared `key_scheme`
+  from the canonical nested location: `dispatch_signature.key_scheme` for
+  `task`/`job` envelopes, `receipt_signature.key_scheme` for
+  `task_result`/`job_result` envelopes, `None` for `task_error`/`job_error`
+  (error envelopes are unsigned by spec). Top-level
+  `envelope.get('key_scheme')` is preserved as a tolerated fallback for
+  synthetic flat-dict test inputs AND for typed envelopes whose canonical
+  nested block is absent or empty. Real Task/TaskResult envelopes from
+  `thermocline/conformance/valid/` now round-trip through `Verifier.verify`
+  and produce a `Receipt`; AT-C4 is wired behaviorally rather than
+  structurally.
+- **BL-03** (IDENT-05) — `BrineProvider.__init__` rejects unavailable
+  keystores via `isinstance(backend, (keyring.backends.fail.Keyring,
+  keyring.backends.null.Keyring))` — direct class identity, not a substring
+  match on `type(backend).__name__`. The substring heuristic missed both
+  production classes (both are named `'Keyring'`); the adapter falls open
+  no longer (IDENT-05 enforced in production).
+- **BL-04** — `BrineProvider.generate()` refuses to clobber an existing
+  seed (raises `IdentityError(code='IDENTITY_ALREADY_EXISTS')`). New
+  `BrineProvider.rotate()` is the only documented path that replaces an
+  existing seed. Closes a foreseeable data-loss path: re-running a setup
+  script no longer destroys the prior signing identity.
+
 ## v0.3.0 (prior — published spec)
 
 Initial spec release. See the repository root `README.md` for the full text
