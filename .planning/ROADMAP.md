@@ -36,12 +36,13 @@ The journey is from three published specs at v0.3.0-draft (Thermocline · Photop
   4. The IdentityProvider reference adapter, when configured for `brine`, refuses to start if `python-keyring` cannot reach the platform secure keystore (no fall-back to file/env-var storage); a Hypothesis property test asserts canonical-JSON round-trip stability over arbitrary envelope shapes.
   5. `Receipt` cannot be constructed except via `IdentityProvider.verify` returning success — verified by direct attempt (e.g., `Receipt(...)` raises `TypeError`) and by static type-check (`mypy --strict` passes on a deliberate misuse fixture).
 
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [x] 01-01: Workspace skeleton + `thermocline/python/` package scaffold + envelope types (Pydantic v2) for task / task_result / job / job_result / error + JSON Schema artifact generation under `thermocline/schema/`.
 - [x] 01-02: Canonical JSON (`thermocline.canonical.canonicalize` via `rfc8785`) + Hypothesis round-trip stability tests + canonical-JSON CI lint forbidding `json.dumps` outside explicitly non-signing paths.
 - [x] 01-03: `IdentityProvider` Protocol + brine reference adapter (PyNaCl + python-keyring) + key-scheme dispatch on verify + `Receipt` value type with private constructor + initial conformance fixture set under `thermocline/conformance/{valid,invalid}/`.
+- [ ] 01-04: Gap closure for BL-01..BL-04 — separate public-key store on `BrineProvider` (cross-role verify), nested `key_scheme` lookup in `Verifier.verify` for real Task / TaskResult envelopes, `isinstance` keystore probe against real `keyring.backends.fail.Keyring` / `null.Keyring`, and clobber-safe `generate()` + explicit `rotate()`.
 
 ---
 
