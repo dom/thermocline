@@ -35,6 +35,8 @@ from typing import Any, ClassVar, Final, Protocol, runtime_checkable
 import keyring
 import nacl.exceptions
 import nacl.signing
+from keyring.backends import fail as _fail_backend
+from keyring.backends import null as _null_backend
 from keyring.errors import NoKeyringError
 
 from .canonical import canonicalize
@@ -348,12 +350,16 @@ class BrineProvider:
                 "(IDENT-05).",
                 code="KEYSTORE_UNAVAILABLE",
             ) from exc
-        backend_name = type(backend).__name__
-        if "fail" in backend_name.lower() or "null" in backend_name.lower():
+        # BL-03 closure: isinstance probe against the production fail/null
+        # backend classes. Both classes are named ``Keyring`` -- the previous
+        # substring heuristic on ``type(backend).__name__`` missed both. Direct
+        # class identity is the only correct way.
+        if isinstance(backend, (_fail_backend.Keyring, _null_backend.Keyring)):
             raise KeystoreUnavailableError(
-                f"refusing to start: keyring backend is {backend_name!r} (no "
-                "working secure keystore). Brine adapter NEVER falls back to "
-                "file or env-var storage (IDENT-05).",
+                f"refusing to start: keyring backend is "
+                f"{type(backend).__module__}.{type(backend).__name__!r} "
+                "(no working secure keystore). Brine adapter NEVER falls "
+                "back to file or env-var storage (IDENT-05).",
                 code="KEYSTORE_UNAVAILABLE",
             )
         self._keyring_service = keyring_service

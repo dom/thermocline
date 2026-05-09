@@ -1,28 +1,33 @@
 """IDENT-05: Brine adapter refuses to start without a working secure keystore.
 
-Plan 01-03 / Task 2 behavioral coverage. The brine adapter MUST refuse to
-start when the platform secure keystore is unavailable; it MUST NOT fall back
-to file-based or env-var-based key storage. There is no fallback path — the
-discipline is enforced both:
+Plan 01-03 / Task 2 behavioral coverage; revised in Plan 01-04 / Task 4
+(BL-03 closure) so the fail/null-backend tests use the REAL production
+classes (``keyring.backends.fail.Keyring`` and
+``keyring.backends.null.Keyring``) instead of hand-rolled synthetic
+look-alikes. Both production classes are named ``Keyring`` -- the previous
+substring heuristic on ``type(backend).__name__`` missed both. Direct
+``isinstance`` identity is the only correct probe.
 
-* Behaviorally: ``BrineProvider.__init__`` probes the keystore and raises
-  :class:`KeystoreUnavailableError` if the keyring backend is absent or is
-  the fail/null backend.
+The brine adapter MUST refuse to start when the platform secure keystore is
+unavailable; it MUST NOT fall back to file-based or env-var-based key
+storage. There is no fallback path -- the discipline is enforced both:
+
+* Behaviorally: ``BrineProvider.__init__`` probes the keystore via
+  :func:`isinstance` against ``(fail.Keyring, null.Keyring)`` and raises
+  :class:`KeystoreUnavailableError` if either matches.
 * Statically: the source of ``thermocline.identity`` contains zero references
-  to ``os.environ``, ``os.getenv``, ``open(``, ``Path(``, or ``pathlib`` —
+  to ``os.environ``, ``os.getenv``, ``open(``, ``Path(``, or ``pathlib`` --
   if a future change introduces filesystem fallback, this test fires.
-
-NOTE: These tests were folded in during Plan 01-03 / Task 3 because the Task 1+2
-executor did not commit the dedicated keystore-required test file listed in the
-plan frontmatter. See 01-03-SUMMARY.md ``Deviations`` for the trace.
 """
 from __future__ import annotations
 
 import inspect
 from typing import Any
-from unittest.mock import MagicMock
 
+import keyring
 import pytest
+from keyring.backends import fail
+from keyring.backends import null
 
 
 def test_brine_refuses_to_start_when_no_keyring(
@@ -47,44 +52,53 @@ def test_brine_refuses_to_start_when_no_keyring(
 def test_brine_refuses_to_start_with_fail_backend(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """IDENT-05: a 'fail'-named backend at startup surfaces as KeystoreUnavailableError."""
+    """BL-03: production keyring.backends.fail.Keyring is named 'Keyring'
+    (not 'FailKeyring') -- the substring heuristic missed it. The
+    ``isinstance`` probe against the real class catches it.
+    """
     from thermocline.errors import KeystoreUnavailableError
     from thermocline.identity import BrineProvider
 
-    fake_backend = MagicMock()
-    # Force the backend's class name to contain "fail" — the heuristic the
-    # adapter checks. type(MagicMock()).__name__ defaults to 'MagicMock' which
-    # would NOT trip the check; we override via a subclass.
-
-    class FailKeyring:
-        pass
-
-    monkeypatch.setattr(
-        "thermocline.identity.keyring.get_keyring", lambda: FailKeyring()
-    )
+    monkeypatch.setattr(keyring, "get_keyring", lambda: fail.Keyring())
 
     with pytest.raises(KeystoreUnavailableError) as excinfo:
         BrineProvider(keyring_service="thermocline.test.fail-backend")
     assert excinfo.value.code == "KEYSTORE_UNAVAILABLE"
+    # Smoke-test the qualified-name change in the error message.
+    msg = str(excinfo.value).lower()
+    assert "fail" in msg or "null" in msg
 
 
 def test_brine_refuses_to_start_with_null_backend(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """IDENT-05: a 'null'-named backend at startup also surfaces as KeystoreUnavailableError."""
+    """BL-03: production keyring.backends.null.Keyring is named 'Keyring'
+    (not 'NullKeyring') -- caught by the ``isinstance`` probe.
+    """
     from thermocline.errors import KeystoreUnavailableError
     from thermocline.identity import BrineProvider
 
-    class NullKeyring:
-        pass
-
-    monkeypatch.setattr(
-        "thermocline.identity.keyring.get_keyring", lambda: NullKeyring()
-    )
+    monkeypatch.setattr(keyring, "get_keyring", lambda: null.Keyring())
 
     with pytest.raises(KeystoreUnavailableError) as excinfo:
         BrineProvider(keyring_service="thermocline.test.null-backend")
     assert excinfo.value.code == "KEYSTORE_UNAVAILABLE"
+
+
+def test_brine_accepts_in_memory_backend_that_is_not_fail_or_null(
+    brine_in_memory_keyring,
+) -> None:
+    """Defense against over-rejection: a working backend (the conftest
+    ``_InMemoryKeyringBackend``) that is NOT ``keyring.backends.fail.Keyring``
+    or ``keyring.backends.null.Keyring`` MUST be accepted by the
+    ``isinstance`` probe. The brine_in_memory_keyring fixture installs an
+    in-memory backend; constructing BrineProvider here must succeed.
+    """
+    from thermocline.identity import BrineProvider
+
+    p = BrineProvider(keyring_service="thermocline.test")
+    p.generate(identity="alice")
+    assert p.public_key(identity="alice") is not None
 
 
 def test_brine_provider_source_has_no_filesystem_fallback() -> None:
@@ -99,7 +113,7 @@ def test_brine_provider_source_has_no_filesystem_fallback() -> None:
     src = inspect.getsource(identity_module)
 
     # Strip whole-line comments and docstring lines crudely. Keeping it crude
-    # is intentional — we want false positives to read the test and document
+    # is intentional -- we want false positives to read the test and document
     # the exception explicitly rather than ducking the check.
     code_only_lines = [
         line
@@ -111,7 +125,7 @@ def test_brine_provider_source_has_no_filesystem_fallback() -> None:
     forbidden = ("os.environ", "os.getenv", "open(", "Path(", "pathlib")
     for token in forbidden:
         assert token not in code_only, (
-            f"thermocline.identity source contains {token!r} — IDENT-05 forbids any "
+            f"thermocline.identity source contains {token!r} -- IDENT-05 forbids any "
             f"filesystem / env-var key-storage fallback. Either remove the reference, "
             f"or document an exception in the test."
         )
