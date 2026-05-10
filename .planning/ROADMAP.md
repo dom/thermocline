@@ -73,7 +73,7 @@ Plans:
 
 Plans:
 - [x] 02-01: `photophore/python/` package scaffold + `core` types + `audit` (SQLite chained log with `algo_version="blake3-v1"`, append-only triggers, `AnchorTarget` Protocol with no-op default, query/export, `photophore audit` CLI) + `channels` (trust store via `python-keyring`, lifecycle, ceiling rules, `photophore channel` CLI).
-- [ ] 02-02: `classifier` (explicit tag parser + path-rule engine with mandatory catch-all validation + rule-based v0.1 classifier with explicit `default_tier()`) + `photophore classify` CLI subcommand + Hypothesis property test for default invariant.
+- [x] 02-02: `classifier` (explicit tag parser + path-rule engine with mandatory catch-all validation + rule-based v0.1 classifier with explicit `default_tier()`) + `photophore classify` CLI subcommand + Hypothesis property test for default invariant.
 - [ ] 02-03: `shadow` (per-content-type abstraction strategies + irreversibility hard-fail + relevance/distinguishability soft-warn + UUIDv4 over `os.urandom` shadow IDs) + `policy` (`result_policy` authoring from channel + envelope draft for `task` envelopes only — manifest authoring deferred) + `photophore policy preview` CLI subcommand.
 
 ---
@@ -139,7 +139,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. `thermocline-py` Foundations | 4/4 | Complete   | 2026-05-09 |
-| 2. Photophore Privacy Primitives + Foundations | 1/3 | In Progress|  |
+| 2. Photophore Privacy Primitives + Foundations | 2/3 | In Progress|  |
 | 3. Photophore Dispatch + Seamount Upgrade | 0/2 | Not started | - |
 | 4. Hardening, Conformance, and v0.1 Release | 0/2 | Not started | - |
 
