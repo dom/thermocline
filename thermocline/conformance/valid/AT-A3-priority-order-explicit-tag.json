@@ -1,0 +1,42 @@
+{
+  "_at_surface": "AT-A3",
+  "_phase_wired": 2,
+  "_description": "Documents the explicit-tag-wins priority rule from CLASS-01. An attacker-controlled @photophore:public tag promotes tier-0 content if and only if the issuer node honors the tag — by design. Explicit tags are issuer-authored on the issuer node and are the highest-priority classification signal per CLASS-01. An attacker who can inject a forged @photophore:public tag into content has access to the issuer node, which is a different threat (AT-A1). AT-A3 is mitigated by issuer-side controls (SHADOW-04 irreversibility, audit-log surveillance, AT-A1 channel-impersonation defenses), NOT by the classifier. This fixture lives in conformance/valid/ because it documents intended behavior, not a violation. Behavioral wire: photophore/python/tests/test_classifier_priority.py.",
+  "_placement_rationale": "W12: moved from invalid/ to valid/. AT-A3 documents intended behavior under CLASS-01 — explicit tag priority is spec contract, not a bug. The prior invalid/ placement implied AT-A3 was a violation; placing it here clarifies that the priority order is correct.",
+  "scenario": {
+    "description": "Two ContentBlocks: one with an explicit @photophore:public tag, one without.",
+    "blocks": [
+      {
+        "id": "block-1",
+        "content_summary": "tier-0 content with @photophore:public tag in the body",
+        "content_fragment": "SENSITIVE_DATA @photophore:public override applied",
+        "path": "/x/.env",
+        "expected_classification": {
+          "tier": "public",
+          "reason": "explicit_tag",
+          "note": "CLASS-01 Priority 1 wins — explicit tag overrides path rule (env-credentials -> local). This is intended: the issuer node is the trust anchor."
+        }
+      },
+      {
+        "id": "block-2",
+        "content_summary": "same tier-0 content WITHOUT the explicit tag",
+        "content_fragment": "SENSITIVE_DATA without any override tag",
+        "path": "/x/.env",
+        "expected_classification": {
+          "tier": "local",
+          "reason": "path_rule:env-credentials",
+          "note": "Without issuer-authored tag, content stays local via the env-credentials path rule."
+        }
+      }
+    ]
+  },
+  "expected_classify_output": [
+    {"block_id": "block-1", "tier": "public", "reason": "explicit_tag"},
+    {"block_id": "block-2", "tier": "local", "reason": "path_rule:env-credentials"}
+  ],
+  "mitigations": [
+    "SHADOW-04: shadow irreversibility prevents the abstracted summary from leaking the original content",
+    "AUDIT-01..08: append-only audit log records every dispatch — surveillance catches unusual tier-escalation patterns",
+    "AT-A1: channel impersonation defenses require key_scheme to match keystore record, blocking most issuer-node compromise paths"
+  ]
+}

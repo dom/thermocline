@@ -15,3 +15,11 @@ pairs:
     schemas:
       request: ../../schema/task.schema.json
       response: ../../schema/task_result.schema.json
+
+# Behavioral documentation fixtures — document intended behavior, not error conditions.
+# These fixtures live in valid/ because they describe correct operation, not violations.
+fixtures:
+  - fixture: AT-A3-priority-order-explicit-tag.json
+    surface: AT-A3
+    phase: 2
+    description: "Documents the explicit-tag-wins priority rule from CLASS-01. An attacker-controlled @photophore:public tag promotes tier-0 content if and only if the issuer node honors the tag — by design. AT-A3 is mitigated by issuer-side controls (SHADOW-04 irreversibility, audit-log surveillance, AT-A1 channel-impersonation defenses), NOT by the classifier. Behavioral wire: photophore/python/tests/test_classifier_priority.py."
