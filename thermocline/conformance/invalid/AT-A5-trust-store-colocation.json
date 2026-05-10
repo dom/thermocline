@@ -1,0 +1,21 @@
+{
+  "_at_surface": "AT-A5",
+  "_description": "Trust-store co-location violation: the audit log (audit.db) and the channel trust store (channels.db or the platform keystore) are pointing to the same file path, violating the D-04 three-store model. The photophore.channels.ChannelStore MUST use three discrete backing stores: (1) python-keyring (platform Keychain/libsecret/CredentialManager) for channel records, (2) channels.db for the derived index, (3) audit.db for the audit log. Co-locating any two of these is a structural violation. Behavioral wire: tests/test_channels_separation.py.",
+  "_phase_wired": 2,
+  "_expect_error_code": "TRUST_STORE_COLOCATION",
+  "_test_file": "photophore/python/tests/test_channels_separation.py",
+  "violating_config": {
+    "audit_db_path": "/path/to/photophore/data.db",
+    "channels_db_path": "/path/to/photophore/data.db",
+    "description": "audit.db and channels.db point to the SAME file — violation of D-04 three-store model"
+  },
+  "compliant_config": {
+    "audit_db_path": "~/.local/share/photophore/audit.db",
+    "channels_db_path": "~/.local/share/photophore/channels.db",
+    "keystore_service": "photophore.channel",
+    "keystore_backend": "platform keystore (Keychain / libsecret / CredentialManager)",
+    "description": "Three discrete stores at three distinct locations — D-04 compliant"
+  },
+  "expected_behavior": "Photophore's ChannelStore constructor enforces that channels_db_path != audit_db_path at the Python level. The platform keystore is structurally separate from both SQLite files. Attempting to instantiate ChannelStore with the same path for channels.db and audit.db must fail or the test_channels_separation.py assertion must catch the co-location. Exit code 5 (KeystoreError) or 2 (ConfigError) depending on which check fires first.",
+  "notes": "D-04 three-store model is enforced structurally: AuditLog._path and ChannelStore.channels_db_path are different string values at instantiation time. The platform keystore uses an OS-managed backing store (never a file path under the same directory as audit.db). AT-A5 is behaviorally tested in test_channels_separation.py which asserts the three paths are distinct and that the keyring service does not write to the audit.db or channels.db filesystem paths."
+}

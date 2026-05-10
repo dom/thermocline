@@ -1,0 +1,41 @@
+{
+  "_at_surface": "AT-A4",
+  "_description": "Audit log tampering: a row in the entries table has a prev_hash value that does NOT match the entry_hash of the chronologically prior entry. This simulates a file-level tamper that bypassed the append-only SQLite triggers (e.g., via PRAGMA writable_schema=ON). The photophore.audit.AuditLog.verify_chain() method MUST detect this and return (False, tampered_entry_id). Behavioral wire: tests/test_audit_chain_property.py (AUDIT-08, Hypothesis property test, >=100 examples).",
+  "_phase_wired": 2,
+  "_expect_error_code": "AUDIT_CHAIN_BROKEN",
+  "_test_file": "photophore/python/tests/test_audit_chain_property.py",
+  "scenario": {
+    "description": "Two audit entries; second entry has a corrupted prev_hash.",
+    "entries": [
+      {
+        "id": "at-a4-entry-1-0000-4000-8000-000000000001",
+        "algo_version": "blake3-v1",
+        "prev_hash": "",
+        "entry_hash": "(real hash computed from blake3(canonicalize(entry_1_minus_hash)))",
+        "event_type": "channel.created",
+        "channel_id": "at-a4-channel-id",
+        "envelope_id": null,
+        "timestamp": "2026-05-09T00:00:00.000Z",
+        "payload": { "remote_node": "bob", "ceiling": "tier-1" }
+      },
+      {
+        "id": "at-a4-entry-2-0000-4000-8000-000000000002",
+        "algo_version": "blake3-v1",
+        "prev_hash": "deadbeef00000000deadbeef00000000deadbeef00000000deadbeef00000000",
+        "entry_hash": "(real hash computed from blake3(canonicalize(entry_2_minus_hash)))",
+        "event_type": "channel.opened",
+        "channel_id": "at-a4-channel-id",
+        "envelope_id": null,
+        "timestamp": "2026-05-09T00:00:01.000Z",
+        "payload": { "from_state": "PROPOSED", "to_state": "OPEN" }
+      }
+    ],
+    "expected_verify_chain": {
+      "valid": false,
+      "broken_at": "at-a4-entry-2-0000-4000-8000-000000000002"
+    },
+    "tamper_method": "PRAGMA writable_schema=ON; DROP TRIGGER entries_no_update; UPDATE entries SET prev_hash='deadbeef...' WHERE id=entry_2_id; PRAGMA writable_schema=OFF",
+    "detection_method": "AuditLog.verify_chain() re-walks the chain, checks each entry's prev_hash against the previous entry's entry_hash"
+  },
+  "notes": "The '(real hash ...)' placeholders are intentional. Phase 4 conformance harness (CONF-04) computes deterministic hashes from test vectors. Phase 2 ships the wire-shape contract. The Hypothesis property test in test_audit_chain_property.py exhaustively tests both payload and prev_hash tamper paths with >=100 generated cases."
+}
