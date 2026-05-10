@@ -91,10 +91,14 @@ class _TaskBlock(BaseModel):
     parameters: dict[str, Any] = Field(default_factory=dict)
 
 
-class _ResultPolicy(BaseModel):
+class ResultPolicy(BaseModel):
     """``result_policy`` block — issuer-authored result handling rules.
 
     Phase 1 ships the model only; Photophore (Phase 2) authors policy values.
+
+    Public since Plan 02-03 (OQ-2 resolution). Prior name was ``_ResultPolicy``
+    (private); renamed to public ``ResultPolicy`` so Photophore and future
+    cross-language ports can import without depending on a private name.
     """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -102,6 +106,12 @@ class _ResultPolicy(BaseModel):
     persist_to_shared: list[str] = Field(default_factory=list)
     return_only: list[str] = Field(default_factory=list)
     strip_before_persist: list[str] = Field(default_factory=list)
+
+
+# Backward-compat alias for Phase 1 callers that imported ``_ResultPolicy``.
+# Public name is ``ResultPolicy`` per OQ-2 (Phase 2 / 02-03 spec patch).
+# Alias remains for at least one minor cycle (v0.3.x); Phase 4 may remove it.
+_ResultPolicy = ResultPolicy  # noqa: E305
 
 
 class _DispatchSignature(BaseModel):
@@ -226,7 +236,7 @@ class Task(_VersionedEnvelope):
     channel_id: str
     task: _TaskBlock
     context: list[ContentBlock] = Field(default_factory=list)
-    result_policy: _ResultPolicy | None = None
+    result_policy: ResultPolicy | None = None
     dispatch_signature: _DispatchSignature | None = None
 
     @classmethod
@@ -277,7 +287,7 @@ class _Manifest(BaseModel):
     intent: str
     output_contract: _JobOutputContract
     constraints: _JobConstraints
-    result_policy: _ResultPolicy
+    result_policy: ResultPolicy
     timeout_seconds: int
 
 
@@ -385,6 +395,7 @@ __all__ = [
     "ErrorEnvelope",
     "Job",
     "JobResult",
+    "ResultPolicy",    # Public since Plan 02-03 (OQ-2). Backward-compat alias _ResultPolicy retained.
     "Task",
     "TaskResult",
     # The exception is part of the envelope module's public contract because
