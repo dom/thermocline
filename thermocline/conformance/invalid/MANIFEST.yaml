@@ -86,6 +86,23 @@ fixtures:
       (dispatch coordinator resolves channel from keystore and verifies key_scheme match before
       signing). Phase 2 commits the fixture shape for Phase 3 to load and exercise.
 
+  - fixture: AT-A2-shadow-correlation.json
+    surface: AT-A2
+    description: "Shadow correlation — shadow_ids MUST be fresh per dispatch (no caching); identical content submitted in multiple dispatches MUST produce distinct shadow_ids."
+    expect_error_code: "SHADOW_ID_REUSE"
+    phase: 2
+    notes: |
+      Behaviorally wired in Phase 2 plan 02-03 via:
+        (1) Hypothesis property test tests/test_shadow_uniqueness_property.py
+            (>= 100 outer cases × 100 inner generate() calls with IDENTICAL inputs =
+            >= 10,000 total calls, all shadow_ids distinct; proves no content-keyed cache exists).
+        (2) Grep gate in tests/test_shadow_no_caching.py
+            (asserts zero @lru_cache / @functools.cache / _shadow_cache assignments
+            in photophore/python/src/photophore/shadow/).
+      Any implementation caching shadow results by (content, content_type) key is non-compliant.
+      Full SHADOW-06 wire: Phase 3 dispatch coordinator ensures no Shadow object is retained
+      after dispatch completes (DISP-03 scope).
+
   - fixture: AT-A4-audit-log-tampering.json
     surface: AT-A4
     description: "Audit log tampering — a row has a prev_hash that does not match the entry_hash of the prior entry."
