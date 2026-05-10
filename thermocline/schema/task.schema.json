@@ -61,6 +61,35 @@
       "title": "KeyScheme",
       "type": "string"
     },
+    "ResultPolicy": {
+      "additionalProperties": false,
+      "description": "``result_policy`` block \u2014 issuer-authored result handling rules.\n\nPhase 1 ships the model only; Photophore (Phase 2) authors policy values.\n\nPublic since Plan 02-03 (OQ-2 resolution). Prior name was ``_ResultPolicy``\n(private); renamed to public ``ResultPolicy`` so Photophore and future\ncross-language ports can import without depending on a private name.",
+      "properties": {
+        "persist_to_shared": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Persist To Shared",
+          "type": "array"
+        },
+        "return_only": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Return Only",
+          "type": "array"
+        },
+        "strip_before_persist": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Strip Before Persist",
+          "type": "array"
+        }
+      },
+      "title": "ResultPolicy",
+      "type": "object"
+    },
     "_DispatchSignature": {
       "additionalProperties": false,
       "description": "``dispatch_signature`` block carried on signed envelopes.\n\nPlan 03 implements signing; this model just round-trips the wire shape.",
@@ -119,35 +148,6 @@
         "timestamp"
       ],
       "title": "_DispatchSignature",
-      "type": "object"
-    },
-    "_ResultPolicy": {
-      "additionalProperties": false,
-      "description": "``result_policy`` block \u2014 issuer-authored result handling rules.\n\nPhase 1 ships the model only; Photophore (Phase 2) authors policy values.",
-      "properties": {
-        "persist_to_shared": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Persist To Shared",
-          "type": "array"
-        },
-        "return_only": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Return Only",
-          "type": "array"
-        },
-        "strip_before_persist": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Strip Before Persist",
-          "type": "array"
-        }
-      },
-      "title": "_ResultPolicy",
       "type": "object"
     },
     "_Shadow": {
@@ -248,7 +248,7 @@
     "result_policy": {
       "anyOf": [
         {
-          "$ref": "#/$defs/_ResultPolicy"
+          "$ref": "#/$defs/ResultPolicy"
         },
         {
           "type": "null"

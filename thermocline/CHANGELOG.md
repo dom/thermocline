@@ -9,7 +9,7 @@ The reference implementation lives at `thermocline/python/`; the JSON Schema
 artifacts under `thermocline/schema/` are the language-agnostic contract that
 cross-language ports validate against.
 
-## v0.3.1 (in progress — Phase 1)
+## v0.3.1 (in progress — Phase 1 + Phase 2)
 
 Discovery phase: implementing `thermocline-py` against the published v0.3.0
 spec surfaced the following patches. Each is recorded here and applied in the
@@ -57,6 +57,17 @@ commit cadence (THERMO-01 carry-over).
   formalize an error envelope; `pi-forge` uses a `task_error` envelope with
   a nested `error: {code, message}` block. The reference impl ships
   `ErrorEnvelope` with that shape; spec promotion is a THERMO-01 carry-over.
+
+### Plan 02-03 spec patch (OQ-2 resolution — Phase 2)
+
+- **ResultPolicy public export** (Phase 2 / Plan 02-03 / OQ-2):
+  - Renamed `thermocline.envelope._ResultPolicy` → `thermocline.envelope.ResultPolicy` (public class).
+  - Added `ResultPolicy` to `thermocline.envelope.__all__` and to `thermocline.__all__`.
+  - Backward-compat alias `_ResultPolicy = ResultPolicy` retained in `envelope.py` for at least one minor cycle (v0.3.x); Phase 4 may remove it once all callers have migrated.
+  - Photophore (Plan 02-03) authors `result_policy` on issuer-node task envelopes; the API surface is now public, not private.
+  - Cross-impl contract: any future thermocline-py port (Rust, TypeScript, Swift) MUST expose `ResultPolicy` as public.
+  - Migration: `from thermocline.envelope import _ResultPolicy` → `from thermocline import ResultPolicy`. The private import still works for one minor cycle via the alias.
+  - Schema artifacts regenerated via `python -m thermocline.scripts.build_schemas --write` (standard D-02 pipeline); the `$defs` key changed from `_ResultPolicy` to `ResultPolicy` in task/job schema embeds. Verified clean via `--check`.
 
 ### Plan 01-04 gap closure (BL-01..BL-04)
 
