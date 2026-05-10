@@ -12,6 +12,7 @@
 #               Phase 1 (manifest references existing JSON, JSON parses).
 #
 # AT-C surface vocabulary follows ../../README.md ("Threat Model" section).
+# AT-A surface vocabulary follows photophore/README.md ("Attack Surfaces and Mitigations").
 fixtures:
   - fixture: AT-C1-replayed-envelope.json
     surface: AT-C1
@@ -72,3 +73,37 @@ fixtures:
     notes: |
       Pydantic v2 raises ValidationError with type 'extra_forbidden' for any unknown field.
       The manifest's expect_error_code maps to this Pydantic error type — the harness translates.
+
+  # --- Photophore AT-A surfaces (Phase 2+) ---
+
+  - fixture: AT-A1-channel-impersonation.json
+    surface: AT-A1
+    description: "Channel impersonation — task envelope declares a key_scheme that does not match the keystore record for the cited channel_id."
+    expect_error_code: "CHANNEL_IMPERSONATION"
+    phase: 3
+    notes: |
+      Structural fixture committed in Phase 2 (plan 02-01). Behavioral wire lands in Phase 3
+      (dispatch coordinator resolves channel from keystore and verifies key_scheme match before
+      signing). Phase 2 commits the fixture shape for Phase 3 to load and exercise.
+
+  - fixture: AT-A4-audit-log-tampering.json
+    surface: AT-A4
+    description: "Audit log tampering — a row has a prev_hash that does not match the entry_hash of the prior entry."
+    expect_error_code: "AUDIT_CHAIN_BROKEN"
+    phase: 2
+    notes: |
+      Behaviorally wired in Phase 2 plan 02-01 via Hypothesis property test
+      (photophore/python/tests/test_audit_chain_property.py, AUDIT-08, >=100 examples).
+      The fixture documents the wire-shape contract; test_audit_chain_property.py covers
+      both payload-tamper and prev_hash-tamper paths.
+
+  - fixture: AT-A5-trust-store-colocation.json
+    surface: AT-A5
+    description: "Trust-store co-location — audit.db and channel trust store point to the same file, violating D-04 three-store model."
+    expect_error_code: "TRUST_STORE_COLOCATION"
+    phase: 2
+    notes: |
+      Behaviorally wired in Phase 2 plan 02-01 via test_channels_separation.py.
+      The test asserts that AuditLog.path != ChannelStore.channels_db_path and that the
+      platform keystore (python-keyring) is not backed by either SQLite file path.
+      The fixture documents the violating_config and compliant_config shapes.
