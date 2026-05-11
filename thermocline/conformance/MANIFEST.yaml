@@ -4,7 +4,9 @@
 #   valid/    — request/response envelope pairs that any compliant impl must accept.
 #   invalid/  — one fixture per Thermocline AT-C threat-model surface (AT-C1..AT-C6).
 #
-# Phase 2 will add Photophore AT-A* fixtures (under invalid/AT-A*).
+# Phase 2 added Photophore AT-A* fixtures (under invalid/AT-A*); they are
+# structurally committed but behaviorally wired in Phase 3 (see ``fixtures``
+# below for the AT-A1 wire-in entry).
 # Phase 3 will add Seamount AT-E* fixtures (under invalid/AT-E*).
 # Phase 4's forge_conformance harness walks each subdirectory's MANIFEST.yaml
 # and emits a unified pass/fail report covering every surface.
@@ -18,3 +20,20 @@ phases_covered:
   - phase: 1
     description: "Thermocline envelope-side surfaces (AT-C1..AT-C6) plus the canonical valid pair."
     surfaces: ["AT-C1", "AT-C2", "AT-C3", "AT-C4", "AT-C5", "AT-C6"]
+  - phase: 3
+    description: "Phase 2 carry-forward AT-A1 fixture wired behaviorally."
+    surfaces: ["AT-A1"]
+
+# Behaviorally-wired fixtures: each entry records when (which phase) the
+# fixture was wired into a real test and where that test lives. Until an
+# entry has ``phase_wired`` set, only the static envelope contract is
+# committed — no implementation guarantees the rejection path yet.
+fixtures:
+  - file: invalid/AT-A1-channel-impersonation.json
+    at_surface: AT-A1
+    phase: 3
+    phase_wired: 3
+    wired_test_path: "photophore/python/tests/integration/test_e2e_at_a1_replay.py"
+    wired_assertion: "test_at_a1_replay_via_real_http"
+    expect_error_code: CHANNEL_IMPERSONATION
+    notes: "Phase 3 wire-in complete; dispatch coordinator rejects at step 1 with CHANNEL_RESOLVE_FAILED."
