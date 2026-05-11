@@ -72,11 +72,11 @@ What does NOT land in this phase (deferred):
 
 ### Dispatch failure-mode surfacing (DISP-01..06, POLICY-03, CLI-03)
 
-- **D-03 (Single exit code 6 + 11 `DispatchError` subcodes; no auto-retry; `retryable: bool` advisory):**
+- **D-03 (Single exit code 6 + 12 `DispatchError` subcodes; no auto-retry; `retryable: bool` advisory):**
 
   Exit code 6 is reserved for ALL dispatch errors (Phase 2 D-14 carry-forward). The `DispatchError` class is the single error class raised by `photophore.dispatch.dispatch()`; the subcode is a `StrEnum` member surfaced in CLI output, in the structured error returned from the async API, and in the audit log payload of the pre-dispatch audit entry when the failure happens AFTER audit-pre but BEFORE audit-post.
 
-  The 11 subcodes (each maps to a specific stage of the 9-step flow):
+  The 12 subcodes (each maps to a specific stage of the 9-step flow; stage 7 has two distinct subcodes — `TRANSPORT_TIMEOUT` and `TRANSPORT_REFUSED` — for read-timeout vs. connection-refused failure modes):
 
   | Stage | Subcode | Retryable | Notes |
   |-------|---------|-----------|-------|
