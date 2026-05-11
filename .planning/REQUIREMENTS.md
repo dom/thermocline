@@ -58,7 +58,7 @@ Requirements for the v0.1 implementation milestone. Each maps to a roadmap phase
 
 - [ ] **POLICY-01** `[photophore]` — `result_policy` for outgoing `task` envelopes is authored on the issuer node before signing; any `result_policy` field in the input draft is ignored.
 - [ ] **POLICY-02** `[photophore]` — Result policy is derived from channel ceiling, envelope's declared `output_contract` type and destination, and any explicit policy tags on the task's intent.
-- [ ] **POLICY-03** `[photophore]` — A negative test confirms that envelopes whose received result violates the authored `result_policy` are rejected at the receipt step.
+- [x] **POLICY-03** `[photophore]` — A negative test confirms that envelopes whose received result violates the authored `result_policy` are rejected at the receipt step.
 
 ### Photophore Audit Log — `[photophore]`
 
@@ -73,18 +73,18 @@ Requirements for the v0.1 implementation milestone. Each maps to a roadmap phase
 
 ### Photophore Dispatch and Privacy Receipts — `[photophore]`
 
-- [ ] **DISP-01** `[photophore]` — The dispatch coordinator orchestrates the full 9-step flow: resolve channel → classify each block → generate shadows / strip tier-0 → author result_policy → write pre-dispatch audit entry → delegate signing to identity provider → send envelope (transport) → verify receipt signature → write receipt audit entry.
-- [ ] **DISP-02** `[photophore]` — If the pre-dispatch audit write fails, the envelope is not signed and not sent; the dispatch returns `DispatchError.AUDIT_FAILED` and no partial state is observable.
-- [ ] **DISP-03** `[photophore]` — Receipt signature verification occurs before the receipt is appended to the audit log; if verification fails, the dispatch returns an error and no audit entry referencing the (invalid) receipt is appended; an integration test exercises this with a forged receipt.
-- [ ] **DISP-04** `[photophore]` — Signing input is canonical-JSON via `thermocline.canonical.canonicalize`; the same envelope produces the same canonical bytes regardless of map ordering or whitespace; a Hypothesis property test asserts canonical-JSON round-trip stability over arbitrary envelope shapes.
-- [ ] **DISP-05** `[photophore]` — The dispatch module is the only module in `photophore` permitted to perform network I/O (`httpx`); enforced at CI via custom AST lint forbidding `httpx`/`requests`/`aiohttp` imports in `photophore.{classifier,shadow,policy,audit,channels,core}` and in `thermocline.{envelope,canonical,identity,schemes}`.
-- [ ] **DISP-06** `[photophore]` — Dispatch coordinator is async (`asyncio` + `httpx`); SQLite writes go through `asyncio.to_thread` (or `aiosqlite`) to avoid blocking the event loop.
+- [x] **DISP-01** `[photophore]` — The dispatch coordinator orchestrates the full 9-step flow: resolve channel → classify each block → generate shadows / strip tier-0 → author result_policy → write pre-dispatch audit entry → delegate signing to identity provider → send envelope (transport) → verify receipt signature → write receipt audit entry.
+- [x] **DISP-02** `[photophore]` — If the pre-dispatch audit write fails, the envelope is not signed and not sent; the dispatch returns `DispatchError.AUDIT_FAILED` and no partial state is observable.
+- [x] **DISP-03** `[photophore]` — Receipt signature verification occurs before the receipt is appended to the audit log; if verification fails, the dispatch returns an error and no audit entry referencing the (invalid) receipt is appended; an integration test exercises this with a forged receipt.
+- [x] **DISP-04** `[photophore]` — Signing input is canonical-JSON via `thermocline.canonical.canonicalize`; the same envelope produces the same canonical bytes regardless of map ordering or whitespace; a Hypothesis property test asserts canonical-JSON round-trip stability over arbitrary envelope shapes.
+- [x] **DISP-05** `[photophore]` — The dispatch module is the only module in `photophore` permitted to perform network I/O (`httpx`); enforced at CI via custom AST lint forbidding `httpx`/`requests`/`aiohttp` imports in `photophore.{classifier,shadow,policy,audit,channels,core}` and in `thermocline.{envelope,canonical,identity,schemes}`.
+- [x] **DISP-06** `[photophore]` — Dispatch coordinator is async (`asyncio` + `httpx`); SQLite writes go through `asyncio.to_thread` (or `aiosqlite`) to avoid blocking the event loop.
 
 ### Photophore CLI — `[photophore]`
 
 - [ ] **CLI-01** `[photophore]` — `photophore channel` subcommand supports `new`, `list`, `show`, `suspend`, `close`, `set-ceiling` with both human-readable and JSON output.
 - [ ] **CLI-02** `[photophore]` — `photophore audit` subcommand supports `query` (with all spec-mandated filters), `export`, `verify` (chain integrity verification of a specified range).
-- [ ] **CLI-03** `[photophore]` — `photophore dispatch` accepts a Thermocline `task` envelope draft, channel ID, and dispatches per the full 9-step flow.
+- [x] **CLI-03** `[photophore]` — `photophore dispatch` accepts a Thermocline `task` envelope draft, channel ID, and dispatches per the full 9-step flow.
 - [ ] **CLI-04** `[photophore]` — `photophore classify` performs dry-run classification of a path or content blob, prints `(tier, reason)` for each block without dispatching.
 - [ ] **CLI-05** `[photophore]` — `photophore policy preview` shows the `result_policy` that would be authored for a given channel + envelope draft, without dispatching.
 - [ ] **CLI-06** `[photophore]` — Every CLI subcommand emits an audit log entry recording the operation invoked and its outcome (success/failure); verified by integration test grep over audit DB.
@@ -92,11 +92,11 @@ Requirements for the v0.1 implementation milestone. Each maps to a roadmap phase
 
 ### Seamount Forge Upgrades — `[seamount]`
 
-- [ ] **FORGE-01** `[seamount]` — `pi-forge` is upgraded to use `thermocline-py` for all envelope handling — replaces the in-tree `pi-forge/envelope.py` stubs. `key_scheme="brine"` works end-to-end with real PyNaCl signing/verifying via `thermocline-py`.
-- [ ] **FORGE-02** `[seamount]` — `pi-forge` retains all current task-handling behavior (compute π, statelessness, structured error envelopes); regression-tested by replaying the existing `pi-forge/examples/` fixtures and asserting outputs.
-- [ ] **FORGE-03** `[seamount]` — A second reference forge (`describe-forge`) is added at `seamount/describe-forge/`. It accepts a `task` envelope with at least one tier-1 shadow in `context[]` and returns a tier-2 templated description like `"This forge received a shadow of type 'document' with relevance 0.85."` Statelessness, structured error envelopes, and receipt signing match `pi-forge` patterns.
-- [ ] **FORGE-04** `[seamount]` — A cross-suite conformance test harness (`seamount/conformance/`) is published as a runnable Python package (`forge_conformance`) that POSTs envelopes from `thermocline/conformance/` fixtures to a target URL and validates responses against `thermocline/schema/` JSON Schemas, verifying receipt signatures.
-- [ ] **FORGE-05** `[seamount]` — The conformance harness explicitly maps results to the Seamount conformance checklist (12 items) and emits a structured pass/fail report; CI runs it against `pi-forge` and `describe-forge` on every PR.
+- [x] **FORGE-01** `[seamount]` — `pi-forge` is upgraded to use `thermocline-py` for all envelope handling — replaces the in-tree `pi-forge/envelope.py` stubs. `key_scheme="brine"` works end-to-end with real PyNaCl signing/verifying via `thermocline-py`.
+- [x] **FORGE-02** `[seamount]` — `pi-forge` retains all current task-handling behavior (compute π, statelessness, structured error envelopes); regression-tested by replaying the existing `pi-forge/examples/` fixtures and asserting outputs.
+- [x] **FORGE-03** `[seamount]` — A second reference forge (`describe-forge`) is added at `seamount/describe-forge/`. It accepts a `task` envelope with at least one tier-1 shadow in `context[]` and returns a tier-2 templated description like `"This forge received a shadow of type 'document' with relevance 0.85."` Statelessness, structured error envelopes, and receipt signing match `pi-forge` patterns.
+- [x] **FORGE-04** `[seamount]` — A cross-suite conformance test harness (`seamount/conformance/`) is published as a runnable Python package (`forge_conformance`) that POSTs envelopes from `thermocline/conformance/` fixtures to a target URL and validates responses against `thermocline/schema/` JSON Schemas, verifying receipt signatures.
+- [x] **FORGE-05** `[seamount]` — The conformance harness explicitly maps results to the Seamount conformance checklist (12 items) and emits a structured pass/fail report; CI runs it against `pi-forge` and `describe-forge` on every PR.
 
 ### Cross-Suite Hardening and Conformance — `[suite-wide]`
 
@@ -175,7 +175,7 @@ Which phases cover which requirements. Updated by ROADMAP.md (4 phases, ~10 plan
 | POLICY-01..03 | Phase 2 | Pending |
 | CLI-01, CLI-02, CLI-04, CLI-05 | Phase 2 | Pending |
 | DISP-01..06 | Phase 3 | Pending |
-| CLI-03 | Phase 3 | Pending |
+| CLI-03 | Phase 3 | Complete |
 | FORGE-01..05 | Phase 3 | Pending |
 | CLI-06, CLI-07 | Phase 4 | Pending |
 | CONF-01..08 | Phase 4 | Pending |
