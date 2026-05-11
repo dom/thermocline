@@ -132,8 +132,8 @@ Plan split decision (03-CONTEXT.md D-05): split for repo-boundary cleanness and 
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: Hypothesis property test suite for the four invariants + 17 AT-* negative tests with CI-counted coverage + `seamount/conformance/` standalone harness package + CI gates (`ruff`, `mypy --strict`, `pip-audit`, custom AST network-isolation lint) wired into all three repos' workflows.
-- [ ] 04-02: ADR documents in `thermocline/docs/adr/`, `photophore/docs/adr/`, `seamount/docs/adr/` + `Sensitive[T]` audit across content-bearing types + `print(` lint + `logging` redacting filter + ops/install documentation in each repo's README + three coordinated v0.1 git tags with CHANGELOGs.
+- [ ] 04-01-PLAN.md — Machine-verifiable: 17 AT-* negative tests (Thermocline AT-C1..C6, Photophore AT-A1..A6, Seamount AT-E1..E5) + 4 CONF-03 property tests bumped to max_examples=200 + 1 new dispatch-integrated property test + CLI-06 audit-invocation retrofit + CLI-07 (tier, reason) error messages + Sensitive[T] runtime guard + SensitiveFilter logging + 3 identical print( AST lints + at_coverage tools + at_coverage_total roll-up + property_coverage gate + CI workflows wired into all three repos (new thermocline workflow + extends to photophore/seamount).
+- [ ] 04-02-PLAN.md — Human-readable + release: 7 MADR-lite ADRs (5 thermocline + 2 photophore + 0 seamount cross-refs-only) + SP-3.3-01..03 spec amendments to thermocline/README.md at v0.3.1 + per-repo docs/install.md + docs/ops.md + thermocline/docs/quickstart.md (30-min walkthrough) + thermocline/scripts/tag-v0.1.0.sh release helper + three Keep-a-Changelog-lite CHANGELOGs + three coordinated v0.1.0 git tags (manual operator step). Depends on 04-01.
 
 ## Progress
 
