@@ -112,7 +112,7 @@ The v0.1 milestone of this planning hub spans three repos. Each item below is a 
 | Use PyNaCl (libsodium) for ed25519 brine signing in `thermocline-py` | Mature, audited libsodium bindings; smaller surface than `cryptography` for our needs (signing only). | — Pending |
 | Use Pydantic v2 for envelope types in `thermocline-py` | Fast, ergonomic, generates JSON Schema for free, idiomatic Python type-checking | — Pending |
 | Use `keyring` (Python) for platform keystore access | Cross-platform wrapper for Keychain / libsecret / Credential Manager, mature. | — Pending |
-| `pi-forge` upgrade and a new tier-1-shadow-exercising forge ship together in Phase 3 | The existing `pi-forge` is tier-2-only; a second forge is needed to actually exercise the privacy primitive end-to-end. | — Pending |
+| `pi-forge` upgrade and a new tier-1-shadow-exercising forge ship together in Phase 3 | The existing `pi-forge` is tier-2-only; a second forge is needed to actually exercise the privacy primitive end-to-end. | ✓ Done (Phase 3) |
 | Trust is never automated — Photophore only suggests, the human always decides | Foundational design constraint (Photophore Constraint 2; Thermocline role separation). Not negotiable. | ✓ Good |
 | Zero-trust default — every content block starts as `local`, no permissive default exists | Foundational design constraint (Photophore Constraint 1). Privacy guarantee depends on this asymmetry. | ✓ Good |
 
@@ -134,4 +134,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-05 after suite-wide initialization*
+*Last updated: 2026-05-11 — Phase 3 complete: photophore.dispatch 9-step coordinator + AT-A1 fail-closed, pi-forge real brine + describe-forge tier-1, forge_conformance harness mapped to Seamount 13-item checklist, CI gates wired across photophore + seamount; 362 tests passing; 23/23 must-haves verified.*
