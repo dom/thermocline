@@ -98,11 +98,15 @@ Plans:
   4. `describe-forge` accepts a `task` envelope with at least one tier-1 shadow in `context[]`, returns a tier-2 templated description referencing the shadow's content_type and relevance, and returns a real-brine-signed receipt; an end-to-end Photophore → describe-forge dispatch where the source content is `tier=1` produces a shadow on the wire and a verified description in the result.
   5. The network-isolation contract is enforced as a CI gate (custom AST lint): `photophore.{classifier,shadow,policy,audit,channels,core}` and `thermocline.{envelope,canonical,identity,schemes}` have no transitive HTTP imports; only `photophore.dispatch` and the forge `server.py` files import `httpx`/`requests`/`flask`. Lint fails the build on violation.
 
-**Plans**: 2 plans
+**Plans**: 3 plans
+**Phase Mode:** standard
 
 Plans:
-- [ ] 03-01: `photophore.dispatch` async coordinator (the 9-step flow with type-enforced receipt verification gate, canonical-JSON via `thermocline-py`, audit-pre/audit-post with hard-fail semantics) + `photophore dispatch` CLI subcommand + custom AST lint enforcing network-isolation contract.
-- [ ] 03-02: Upgrade `seamount/pi-forge/` to use `thermocline-py` for envelope handling + real `brine` signing/verifying (replaces TODO stubs; keep `key_scheme="none"` as a configurable option for dev) + add `seamount/describe-forge/` (Flask handler that templates a description from a tier-1 shadow) + first end-to-end integration tests Photophore → both forges → verified receipts.
+- [ ] 03-01: `photophore.dispatch` async coordinator (9-step flow with type-enforced receipt verification gate, canonical-JSON via `thermocline-py`, audit-pre/audit-post hard-fail semantics, POLICY-03 partial-closure wire-in, AT-A1 behavioral wire-in) + `photophore dispatch` CLI subcommand (exit code 6 family, 12 DispatchError subcodes per CONTEXT D-03) + custom AST lint enforcing the network-isolation contract (DISP-05). Photophore-only.
+- [ ] 03-02: Upgrade `seamount/pi-forge/` to use `thermocline-py` for envelope handling + real `brine` signing/verifying (retires `envelope.py:_verify_brine` stub at lines 87–99 and `envelope.py:_sign_receipt` stub at lines 139–165; keeps `key_scheme="none"` as a configurable dev-mode option via `FORGE_KEY_SCHEME=none`) + add `seamount/describe-forge/` (Flask handler returning the normative templated description per CONTEXT D-02; tier-1-required; mixed-tier ignore-inline). Both forges ship `init` subcommand + `GET /pubkey` endpoint + per-forge keystore namespace (`seamount.piforge` / `seamount.describeforge`) per CONTEXT D-01. Seamount-only.
+- [ ] 03-03: End-to-end integration tests (Photophore → pi-forge + Photophore → describe-forge happy paths over real HTTP via `subprocess_forge` fixture; forged-receipt + poisoned-audit + policy-violated negative tests; AT-A1 fixture replay over real HTTP) + cross-suite conformance harness `seamount/conformance/forge_conformance/` mapped to the Seamount 12-item checklist (FORGE-04, FORGE-05) + CI workflow wiring (matrix step `forge: [pi-forge, describe-forge]` in both `photophore/` and `seamount/` CI). Cross-cutting.
+
+Plan split decision (03-CONTEXT.md D-05): split for repo-boundary cleanness and balanced plan size (Phase 2 LEARNINGS noted 02-03 grew uncomfortably large; this split prevents recurrence). 03-01 and 03-02 touch different repos with no shared file edits and run in parallel (wave 0); 03-03 depends on both and runs in wave 1.
 
 ---
 
@@ -140,7 +144,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. `thermocline-py` Foundations | 4/4 | Complete   | 2026-05-09 |
 | 2. Photophore Privacy Primitives + Foundations | 3/3 | Complete   | 2026-05-10 |
-| 3. Photophore Dispatch + Seamount Upgrade | 0/2 | Not started | - |
+| 3. Photophore Dispatch + Seamount Upgrade | 0/3 | Not started | - |
 | 4. Hardening, Conformance, and v0.1 Release | 0/2 | Not started | - |
 
 **Coverage:** 67 of 67 v1 requirements mapped to phases ✓
