@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: Release
 status: executing
-stopped_at: Phase 02 complete (3/3 plans); ready for /gsd-extract-learnings 2 then /gsd-discuss-phase 3
-last_updated: "2026-05-10T02:00:00.000Z"
-last_activity: 2026-05-10 -- Phase 02 complete (Plan 02-03 shadow+policy+ResultPolicy landed)
+stopped_at: Phase 02 learnings extracted; ready for /gsd-discuss-phase 3
+last_updated: "2026-05-10T02:15:00.000Z"
+last_activity: 2026-05-10 -- Phase 02 learnings extracted (13 decisions / 11 lessons / 12 patterns / 10 surprises)
 progress:
   total_phases: 4
   completed_phases: 2
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-05)
 
 Phase: 02 (photophore-privacy-primitives-foundations) — COMPLETE
 Plan: 3 of 3 (all complete)
-Status: Phase 02 complete; ready for /gsd-extract-learnings 2 then /gsd-discuss-phase 3
-Last activity: 2026-05-10 -- Phase 02 complete (Plan 02-03 shadow+policy+ResultPolicy landed)
+Status: Phase 02 learnings extracted; ready for /gsd-discuss-phase 3
+Last activity: 2026-05-10 -- Phase 02 learnings extracted (13 decisions / 11 lessons / 12 patterns / 10 surprises)
 
 Progress: [██████████] 100% (Phase 02 of 04; 7 of 7 planned-in-detail plans complete)
 
@@ -100,6 +100,6 @@ Items acknowledged and carried forward to subsequent milestones:
 
 ## Session Continuity
 
-Last session: 2026-05-10T02:00:00.000Z
-Stopped at: Phase 02 complete (3/3 plans); next recommended: /gsd-extract-learnings 2 then /gsd-discuss-phase 3
-Resume file: .planning/phases/02-photophore-privacy-primitives-foundations/.continue-here.md (Phase 02 closing summary)
+Last session: 2026-05-10T02:15:00.000Z
+Stopped at: Phase 02 learnings extracted (02-LEARNINGS.md); next recommended: /gsd-discuss-phase 3
+Resume file: .planning/phases/02-photophore-privacy-primitives-foundations/02-LEARNINGS.md (full corpus for Phase 3 context inheritance)
