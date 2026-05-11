@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: Release
-status: ready_to_plan
-stopped_at: Phase 3 context gathered
-last_updated: "2026-05-11T10:53:58.967Z"
+status: planning
+stopped_at: Phase 3 complete, ready to plan Phase 4
+last_updated: "2026-05-11T11:09:05.821Z"
 last_activity: 2026-05-11
 progress:
   total_phases: 4
-  completed_phases: 4
+  completed_phases: 3
   total_plans: 10
   completed_plans: 10
   percent: 100
@@ -18,10 +18,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-05)
+See: .planning/PROJECT.md (updated 2026-05-11)
 
 **Core value:** Reveal only what the receiver needs to know, and nothing else — every content block is `local` by default, transmission is the exception earned by explicit human-authored trust, and every boundary crossing produces a verifiable, append-only privacy receipt.
-**Current focus:** Phase 03 — photophore-dispatch-seamount-upgrade-the-integration-phase
+**Current focus:** Phase 04 — hardening, conformance, and v0.1 release (ready to plan)
 
 ## Current Position
 
@@ -71,6 +71,10 @@ Recent decisions affecting current work:
 - Init: Python 3.11+ as the v0.1 implementation language; Pydantic v2 envelope types; PyNaCl for brine signing; RFC 8785 (`rfc8785`) for canonical JSON; SQLite stdlib for audit log; `python-keyring` for platform keystore; BLAKE3 chain hashing with versioned `algo_version`.
 - Init: `thermocline-py` lives at `thermocline/python/` (subdirectory of spec repo, mirroring `seamount/pi-forge/`).
 - Out-of-band before Phase 1: spec patch renaming `cirdan` → `thermocline` JSON schema field shipped at `thermocline@5c0d87c`.
+- Phase 3: photophore.dispatch is the only network-IO surface — enforced via AST lint (DISP-05) with allow-list for `dispatch/`, `cli/dispatch_cmds.py`, `cli/channel_cmds.py` (TOFU `--fetch-pubkey-from`). 12-subcode DispatchError family maps to CLI exit code 6.
+- Phase 3: AT-A1 fail-closed at dispatch step 1 — envelope missing or mismatched `dispatch_signature.key_scheme` is rejected before any audit-pre/sign/transport. MANIFEST records `phase_wired: 3`.
+- Phase 3: cross-suite `forge_conformance` package maps Seamount's 8 conformance + 5 AT-E items (13 total; REQUIREMENTS FORGE-05 text said 12 — implementation aligns with Seamount README normative source).
+- Phase 3: three coordinator-internal envelope adaptations surfaced (SP-3.3-01..03 in 03-03 SUMMARY) — strip `receipt_signature.sig` before re-canonicalize for verify; pre-fill all non-sig dispatch_signature fields before signing; accept both `sig` and `bytes_hex` for receipt sig field.
 
 ### Pending Todos
 
@@ -78,9 +82,9 @@ None yet.
 
 ### Blockers/Concerns
 
-- **`describe-forge` design**: Phase 3 needs a small design spike to confirm "shadow → templated description" is substantive enough to exercise tier-1 handling without bloating into an LLM-backed forge. Plan: spike at start of Phase 3.
-- **Apple Silicon Secure Enclave**: full coverage needs physical Apple Silicon + developer signing identity. Plan: target macOS 12+ via standard Keychain in Phase 1; add Secure Enclave entry tests in Phase 4.
-- **Conformance fixture provenance**: Phase 4 needs canonical conformance fixtures across all three specs. Some can be authored fresh in Phase 1 (`thermocline/conformance/`); others are derived in Phase 3 from real Photophore→forge integration tests, then frozen.
+- **[Phase 4] Apple Silicon Secure Enclave**: full coverage needs physical Apple Silicon + developer signing identity. Plan: add Secure Enclave entry tests in Phase 4.
+- **[Phase 4] Conformance fixture provenance**: Phase 4 needs canonical conformance fixtures across all three specs. Phase 3 produced the integration corpus; Phase 4 freezes them and adds the remaining 16 AT-* negative tests.
+- **[Phase 4 follow-up] Three cross-impl spec patches surfaced in Phase 3** (SP-3.3-01..03): receipt-signature canonicalization invariant (strip `sig` before re-canonicalize), dispatch_signature pre-fill ordering, and `sig`/`bytes_hex` receipt field tolerance. Decide whether to ship as spec README amendments or leave coordinator-internal.
 
 ## Deferred Items
 
@@ -101,6 +105,6 @@ Items acknowledged and carried forward to subsequent milestones:
 
 ## Session Continuity
 
-Last session: 2026-05-11T03:38:57.758Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-photophore-dispatch-seamount-upgrade-the-integration-phase/03-CONTEXT.md
+Last session: 2026-05-11T11:09:05.817Z
+Stopped at: Phase 3 complete, ready to plan Phase 4
+Resume file: None
