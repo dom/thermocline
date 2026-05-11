@@ -1426,17 +1426,51 @@ Forever-decisions that bind this implementation:
 | A11 | The "ChecklistItem(" grep gate from Phase 3 (returns 16, not 13) is a known artifact of `class ChecklistItem(NamedTuple):` syntax; Plan 04-01's `at_coverage.py` doesn't repeat this mistake | Code Examples | If Plan 04-01 introduces a similar grep gate, same false-positive. Mitigation: Phase 3 SUMMARY line 432-438 documents the fix (functional NamedTuple form). [VERIFIED] |
 | A12 | "PIFORGE_READY port=..." print line is contract with `subprocess_forge` fixture | Print Lint Scope | If lint forbids, fixtures break. Mitigation: explicit allow-list entry. [VERIFIED] |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> **Resolution note:** Each Open Question below carries a `RESOLVED:` line capturing the binding answer adopted by the Phase 4 plans (04-01-PLAN.md / 04-02-PLAN.md). The original Recommendation prose is preserved for traceability.
 
 1. **Fixture naming reconciliation (AT-A4, AT-A6, AT-C5).**
    - What we know: filenames don't match spec surfaces.
    - What's unclear: whether Phase 1-2 fixtures used different surface mappings than current spec.
    - Recommendation: Plan 04-01 first task is fixture audit. If misnamed, rename in a single commit with MANIFEST update; document in v0.3.1 CHANGELOG.
+   - **RESOLVED:** Deprecate-then-add. Existing misnamed fixtures preserved for cross-language port stability (renames would break any third-party impl that pinned filenames). New fixtures added with corrected names. The authoritative surface identifier moves OFF the filename and ONTO each fixture's `_at_surface` JSON key + a top-of-file `# AT-SURFACE: AT-X<n>` comment in tests; `at_coverage.py` parses these, not filenames. MANIFEST documents the historical mismatch. Plan 04-01 Tasks 3-4 implement.
 
 2. **`mypy --strict` on seamount forges (CONFLICT-04).**
    - What we know: forges have no `[tool.mypy]` section; `Verifier.verify` returns `None` in pi-forge envelope.py.
    - What's unclear: whether the forges will pass strict cleanly.
    - Recommendation: plan-phase task includes a probe — `cd seamount/pi-forge && mypy --strict server.py envelope.py pi_forge/`. If <10 errors, fix in Plan 04-01. If many, document exemption.
+   - **RESOLVED:** Option (a) primary — extend `[tool.mypy] strict = true` to both forge pyprojects and fix surfaced errors. Option (b) fallback (documented exemption in CHANGELOG known-limitations) is gated by a human-action checkpoint per revision warning W5 — if the probe surfaces >3 errors that cannot be fixed within Task 5's context budget, the executor pauses for operator authorization rather than silently deferring. Plan 04-01 Task 5 implements.
+
+3. **`photophore audit archive` / `audit verify` command existence.**
+   - What we know: `audit query`, `audit export` exist (Phase 2 CLI-02); `audit verify` exists (chain integrity check); `audit archive` not yet implemented.
+   - What's unclear: whether `audit archive` is a v0.1 commitment or v0.2 deferral.
+   - Recommendation: verify before writing ops.md to avoid documenting a nonexistent surface.
+   - **RESOLVED:** `audit archive` does NOT exist in the current photophore CLI surface (verified by grep against `photophore/python/src/photophore/cli/`). v0.1 ships `audit query` + `audit export` + `audit verify` only. Chain archival is deferred to v0.2 — documented as a known limitation in `photophore/docs/ops.md` (Plan 04-02 Task 4) and in the photophore v0.1 CHANGELOG (Plan 04-02 Task 5).
+
+4. **`docs/adr/index.md` format.**
+   - What we know: 7 ADRs land in `thermocline/docs/adr/` (5) and `photophore/docs/adr/` (2) per D-03.
+   - What's unclear: whether the index is bullets-only or includes Status + Date.
+   - Recommendation: minimal — bullets with title + status.
+   - **RESOLVED:** Bulleted list with `Status, Date` suffix per ADR entry. Example line: `- [ADR-0001: Python 3.11+ as Primary Language](./ADR-0001-python-3-11-as-primary-language.md) — Accepted, 2026-05-11`. Plan 04-02 Tasks 1-2 implement.
+
+5. **Thermocline CHANGELOG entry ordering for `## [0.3.1]` + `## [0.1.0]`.**
+   - What we know: existing CHANGELOG has v0.3.0-draft entries; Phase 4 adds `## [0.3.1]` (SP-3.3-01..03 spec amendments) AND `## [0.1.0]` (suite release).
+   - What's unclear: which comes first.
+   - Recommendation: Keep-a-Changelog newest-on-top.
+   - **RESOLVED:** Per Keep-a-Changelog convention, newest-on-top — `## [0.3.1]` (the most recent spec patch) goes ABOVE `## [0.1.0]` (the suite release), with existing v0.3.0-draft entries preserved below. Plan 04-02 Task 3 + Task 5 + PATTERNS.md cross-file invariant 9 all align on `[0.3.1]` above `[0.1.0]`. (Resolves revision warning W2 from plan-checker iteration 1.)
+
+6. **pyproject.toml version bumps coincident with v0.1.0 git tag.**
+   - What we know: each Python package (`thermocline-py`, `photophore`, `pi-forge`, `describe-forge`, `forge_conformance`) has its own `pyproject.toml` `version = "..."` field, currently set to varying values.
+   - What's unclear: whether the v0.1.0 git tag triggers pyproject version bumps.
+   - Recommendation: decoupled.
+   - **RESOLVED:** Package versions stay decoupled from the v0.1.0 git tag. The git tag is a suite-level coordination point (three coordinated tags, one per repo); the pyproject `version` field tracks the package release cadence (which is not v0.1.0 for all packages — `thermocline-py` may be 0.3.1, `photophore` 0.1.0, etc.). Plan 04-02 Task 5 documents this in each CHANGELOG's "Implemented" section.
+
+7. **`dispatch_signature.policy_hash` audit payload semantics.**
+   - What we know: Phase 3 dispatch coordinator emits a `dispatch_signature` block; the audit pre-dispatch payload references the policy by some identifier.
+   - What's unclear: whether the audit payload carries a hash of the authored result_policy or the policy object itself.
+   - Recommendation: out of Phase 4 scope; flag for v0.2.
+   - **RESOLVED:** v0.2 deferral. Phase 4 does not modify dispatch audit payloads; the current Phase 3 shape ships unchanged. Captured in `<deferred>` section of CONTEXT.md and STATE.md "Blockers/Concerns" for v0.2 backlog.
 
 3. **`photophore audit archive` and `photophore audit verify` commands.**
    - What we know: ops.md plan references both.
