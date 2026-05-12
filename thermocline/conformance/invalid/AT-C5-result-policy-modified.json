@@ -1,0 +1,25 @@
+{
+  "_at_surface": "AT-C5",
+  "_description": "Result policy escalation — forge-modified result_policy after dispatch_signature, verifier rejects. The dispatch_signature is over the canonical bytes of the envelope INCLUDING result_policy; mutation by forge invalidates the signature.",
+  "thermocline": "0.3.1",
+  "type": "task",
+  "envelope_id": "00000000-0000-0000-0000-00000000c500",
+  "issued_at": "2026-05-11T00:00:00Z",
+  "issuer": "alice-node",
+  "channel_id": "chan-pi-forge-local",
+  "task": {
+    "type": "data.compute",
+    "instruction": "Compute pi to 100 digits.",
+    "parameters": {"digits": 100}
+  },
+  "context": [],
+  "result_policy": {
+    "allowed_output_fields": ["pi", "result_modified_by_forge"]
+  },
+  "dispatch_signature": {
+    "scheme": "brine",
+    "key_scheme": "brine",
+    "signer_identity": "alice-node",
+    "bytes_hex": "0000000000000000000000000000000000000000000000000000000000000000_INVALID_BECAUSE_FORGE_MUTATED_RESULT_POLICY"
+  }
+}

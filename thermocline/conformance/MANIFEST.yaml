@@ -23,6 +23,12 @@ phases_covered:
   - phase: 3
     description: "Phase 2 carry-forward AT-A1 fixture wired behaviorally."
     surfaces: ["AT-A1"]
+  - phase: 4
+    description: "Phase 4: AT-* negative tests wire-in across all 17 surfaces; new fixtures for AT-A3, AT-A6, AT-C5 (result-policy-modified), AT-E1..E5."
+    surfaces:
+      ["AT-A2", "AT-A3", "AT-A4", "AT-A5", "AT-A6",
+       "AT-C5",
+       "AT-E1", "AT-E2", "AT-E3", "AT-E4", "AT-E5"]
 
 # Behaviorally-wired fixtures: each entry records when (which phase) the
 # fixture was wired into a real test and where that test lives. Until an
@@ -37,3 +43,103 @@ fixtures:
     wired_assertion: "test_at_a1_replay_via_real_http"
     expect_error_code: CHANNEL_IMPERSONATION
     notes: "Phase 3 wire-in complete; dispatch coordinator rejects at step 1 with CHANNEL_RESOLVE_FAILED."
+
+  # ---- Phase 4 wire-ins (AT-A2..A6 + AT-C5 new + AT-E1..E5 new) ----
+  - file: invalid/AT-A2-shadow-correlation.json
+    at_surface: AT-A2
+    phase: 2
+    phase_wired: 4
+    wired_test_path: "photophore/python/tests/at_negative/test_at_a2_shadow_correlation.py"
+    wired_assertion: "test_shadow_uniqueness_single_dispatch"
+    expect_error_code: null
+    notes: "Phase 2 fixture; Phase 4 wires shadow uniqueness assertion via at_negative re-export."
+
+  - file: invalid/AT-A3-classifier-evasion.json
+    at_surface: AT-A3
+    phase: 4
+    phase_wired: 4
+    wired_test_path: "photophore/python/tests/at_negative/test_at_a3_classifier_evasion.py"
+    wired_assertion: "test_classifier_evasion_defaults_to_local"
+    expect_error_code: null
+    notes: "Phase 4 new fixture; classifier MUST return Tier.LOCAL for crafted-benign content (CLASS-04 zero-trust)."
+
+  - file: invalid/AT-A4-audit-log-tampering.json
+    at_surface: AT-A4
+    phase: 2
+    phase_wired: 4
+    wired_test_path: "photophore/python/tests/at_negative/test_at_a4_channel_mitm.py"
+    wired_assertion: "test_channel_mitm_invalidates_signature"
+    expect_error_code: SIGNATURE_INVALID
+    notes: "Fixture filename misleading (Phase 2 naming drift; the file actually tests MITM via signature verification, not audit-log tamper)."
+
+  - file: invalid/AT-A5-trust-store-colocation.json
+    at_surface: AT-A5
+    phase: 2
+    phase_wired: 4
+    wired_test_path: "photophore/python/tests/at_negative/test_at_a5_trust_store_tampering.py"
+    wired_assertion: "test_trust_store_separation_documented"
+    expect_error_code: null
+    notes: "v0.1 relies on three-store separation as primary defense; explicit tamper-detector deferred to v0.2."
+
+  - file: invalid/AT-A6-audit-log-tampering.json
+    at_surface: AT-A6
+    phase: 4
+    phase_wired: 4
+    wired_test_path: "photophore/python/tests/at_negative/test_at_a6_audit_log_tamper.py"
+    wired_assertion: "test_audit_log_tamper_invalidates_chain"
+    expect_error_code: null
+    notes: "Phase 4 new fixture; chain verify must return (False, broken_at) after a single-byte payload tamper."
+
+  - file: invalid/AT-C5-result-policy-modified.json
+    at_surface: AT-C5
+    phase: 4
+    phase_wired: 4
+    wired_test_path: "thermocline/thermocline/python/tests/at_negative/test_at_c5_result_policy_escalation.py"
+    wired_assertion: "test_result_policy_modification_changes_canonical_bytes"
+    expect_error_code: RESULT_POLICY_MUTATED
+    notes: "Phase 4 new fixture; deprecates AT-C5-unsupported-version.json (which was misnamed — tests THERMO-07 not AT-C5). The misnamed fixture is retained for backward compatibility."
+
+  - file: invalid/AT-E1-malicious-payload.json
+    at_surface: AT-E1
+    phase: 4
+    phase_wired: 4
+    wired_test_path: "seamount/conformance/at_negative/test_at_e1_malicious_payload.py"
+    wired_assertion: "test_malformed_payload_rejected"
+    expect_error_code: ENVELOPE_VALIDATION_FAILED
+    notes: "Phase 4 new fixture; forge MUST reject malformed JSON with HTTP 400/422."
+
+  - file: invalid/AT-E2-resource-exhaustion.json
+    at_surface: AT-E2
+    phase: 4
+    phase_wired: 4
+    wired_test_path: "seamount/conformance/at_negative/test_at_e2_resource_exhaustion.py"
+    wired_assertion: "test_oversized_payload_rejected"
+    expect_error_code: null
+    notes: "Phase 4 new fixture; v0.1 size-limit enforcement is xfail (deferred to v0.2 — see CHANGELOG)."
+
+  - file: invalid/AT-E3-tool-escape.json
+    at_surface: AT-E3
+    phase: 4
+    phase_wired: 4
+    wired_test_path: "seamount/conformance/at_negative/test_at_e3_tool_escape.py"
+    wired_assertion: "test_pi_forge_only_accepts_data_compute"
+    expect_error_code: null
+    notes: "Phase 4 new fixture (marker-only); forges have no plugin surface in v0.1; task_type whitelist enforces."
+
+  - file: invalid/AT-E4-forge-impersonation.json
+    at_surface: AT-E4
+    phase: 4
+    phase_wired: 4
+    wired_test_path: "seamount/conformance/at_negative/test_at_e4_forge_impersonation.py"
+    wired_assertion: "test_forge_impersonation_rejected"
+    expect_error_code: RECEIPT_INVALID
+    notes: "Phase 4 new fixture; sovereign rejects receipt signed with wrong-key impersonating forge."
+
+  - file: invalid/AT-E5-timing-side-channel.json
+    at_surface: AT-E5
+    phase: 4
+    phase_wired: 4
+    wired_test_path: "seamount/conformance/at_negative/test_at_e5_timing_side_channel.py"
+    wired_assertion: "test_pi_forge_no_fine_grained_timing"
+    expect_error_code: null
+    notes: "Phase 4 new fixture (marker-only); AST scan asserts forges use coarse-grained timing only."
