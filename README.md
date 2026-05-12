@@ -773,6 +773,21 @@ may break compatibility and require explicit migration.
 
 ---
 
+## Architecture Decision Records
+
+Forever-decisions of the `thermocline-py` reference implementation are recorded
+as ADRs under [docs/adr/](docs/adr/index.md). See:
+
+- [ADR-0001: Python 3.11 as primary language](docs/adr/ADR-0001-python-3-11-as-primary-language.md)
+- [ADR-0002: Pydantic v2 lock-in](docs/adr/ADR-0002-pydantic-v2-lock-in.md)
+- [ADR-0003: Single canonical JSON path](docs/adr/ADR-0003-single-canonical-json-path.md)
+- [ADR-0004: BLAKE3 with `algo_version` chain](docs/adr/ADR-0004-blake3-with-algo-version.md)
+- [ADR-0005: No in-process key material](docs/adr/ADR-0005-no-in-process-key-material.md)
+
+Photophore and Seamount cross-reference these ADRs from their own READMEs.
+
+---
+
 ## Appendix A — Non-Normative
 
 ### Example Configurations
