@@ -1,3 +1,4 @@
+# CONF-03 invariant: canonical-JSON round-trip stability
 """Hypothesis property tests for ``thermocline.canonical.canonicalize``.
 
 These properties are the foundational contract for cross-implementation interop:
@@ -90,7 +91,7 @@ def test_canonicalize_idempotent_under_json_roundtrip(payload: dict[str, Any]) -
 
 
 @given(payload=json_dicts.filter(lambda d: len(d) > 0))
-@settings(max_examples=100)
+@settings(max_examples=200)
 def test_canonicalize_detects_value_mutation(payload: dict[str, Any]) -> None:
     """A single-leaf mutation must produce different canonical bytes.
 
@@ -136,6 +137,7 @@ def test_canonicalize_detects_value_mutation(payload: dict[str, Any]) -> None:
 
 
 @given(keys=st.lists(st.text(min_size=1, max_size=8), min_size=2, max_size=6, unique=True))
+@settings(max_examples=200, deadline=None)
 def test_canonicalize_normalizes_key_order(keys: list[str]) -> None:
     """Reordering top-level dict keys must NOT change canonical bytes."""
     forward = {k: i for i, k in enumerate(keys)}
@@ -149,6 +151,7 @@ def test_canonicalize_normalizes_key_order(keys: list[str]) -> None:
 
 
 @given(items=st.lists(st.integers(min_value=-1000, max_value=1000), min_size=2, max_size=6, unique=True))
+@settings(max_examples=200, deadline=None)
 def test_canonicalize_preserves_list_order(items: list[int]) -> None:
     """Reordering list elements MUST change canonical bytes (arrays are order-sensitive).
 
@@ -165,7 +168,7 @@ def test_canonicalize_preserves_list_order(items: list[int]) -> None:
 
 
 @given(content=st.binary(min_size=0, max_size=128))
-@settings(max_examples=100)
+@settings(max_examples=200)
 def test_sensitive_wrapper_wire_transparent(content: bytes) -> None:
     """``Sensitive[bytes]`` round-trips through canonicalize byte-for-byte deterministically.
 
