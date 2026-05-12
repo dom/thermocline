@@ -1,0 +1,12 @@
+{
+  "_at_surface": "AT-A3",
+  "_description": "Crafted-benign content with hidden credential-like substring; classifier MUST default to LOCAL (CLASS-04 zero-trust). Tier inference is asymmetric: false negatives (private content stays private) are acceptable; false positives (private content classified as safe) never are.",
+  "_phase_wired": 4,
+  "_expect_error_code": null,
+  "_test_file": "photophore/python/tests/at_negative/test_at_a3_classifier_evasion.py",
+  "content_block": {
+    "type": "text",
+    "tag": null,
+    "content": "normal looking text with hidden p4ssw0rd123 buried in prose"
+  }
+}
