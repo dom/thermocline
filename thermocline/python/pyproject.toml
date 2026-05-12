@@ -87,3 +87,8 @@ select = ["E", "F", "B", "I"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "at_surface(name): mark test as exercising a specific AT-* threat-model surface",
+    "documents_only: marker for documents-only AT-* tests (no live runtime assertions)",
+    "keystore: marker for tests that require the platform keystore (macOS Keychain / libsecret / Credential Manager)",
+]
