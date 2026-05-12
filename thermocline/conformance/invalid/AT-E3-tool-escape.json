@@ -1,0 +1,8 @@
+{
+  "_at_surface": "AT-E3",
+  "_description": "Tool escape (marker fixture). v0.1 forges have no plugin/shell surface; the test asserts task_type whitelists (pi-forge='data.compute' only; describe-forge='description.generate' only) AND that server.py imports no subprocess / shlex / pty / ctypes plugin-loader symbols.",
+  "_phase_wired": 4,
+  "_expect_error_code": null,
+  "_marker_only": true,
+  "_test_file": "seamount/conformance/at_negative/test_at_e3_tool_escape.py"
+}

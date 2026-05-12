@@ -1,0 +1,15 @@
+{
+  "_at_surface": "AT-E2",
+  "_description": "Resource exhaustion — digits=10_000_000 to pi-forge. v0.1 forges have NO explicit upper bound on digits; xfail-marked test surfaces the gap. v0.2 will add configurable size limits.",
+  "_phase_wired": 4,
+  "_expect_error_code": null,
+  "_test_file": "seamount/conformance/at_negative/test_at_e2_resource_exhaustion.py",
+  "thermocline": "0.3.1",
+  "type": "task",
+  "envelope_id": "00000000-0000-0000-0000-00000000e200",
+  "issuer": "alice-node",
+  "task": {
+    "type": "data.compute",
+    "parameters": {"digits": 10000000}
+  }
+}

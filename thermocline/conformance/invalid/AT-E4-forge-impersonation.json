@@ -1,0 +1,17 @@
+{
+  "_at_surface": "AT-E4",
+  "_description": "Forge impersonation — an attacker spawns a wrong-key forge, intercepts dispatch, returns a receipt signed with the wrong ed25519 key. Sovereign MUST reject via Verifier.verify() returning None. Live integration test at photophore/python/tests/integration/test_e2e_forged_receipt.py.",
+  "_phase_wired": 4,
+  "_expect_error_code": "RECEIPT_INVALID",
+  "_test_file": "seamount/conformance/at_negative/test_at_e4_forge_impersonation.py",
+  "thermocline": "0.3.1",
+  "type": "task_result",
+  "envelope_id": "00000000-0000-0000-0000-00000000e400",
+  "issuer": "pi-forge",
+  "receipt_signature": {
+    "scheme": "brine",
+    "key_scheme": "brine",
+    "signer_identity": "pi-forge-impersonator",
+    "bytes_hex": "wrong_key_bytes_in_hex_signed_by_impersonator_not_real_pi_forge"
+  }
+}

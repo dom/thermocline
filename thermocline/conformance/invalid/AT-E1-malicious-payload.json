@@ -1,0 +1,16 @@
+{
+  "_at_surface": "AT-E1",
+  "_description": "Malicious payload — malformed JSON / unknown top-level field / wrong type. Forge MUST reject with structured error (HTTP 400/422), never crash. forge_conformance harness validates schema enforcement.",
+  "_phase_wired": 4,
+  "_expect_error_code": "ENVELOPE_VALIDATION_FAILED",
+  "_test_file": "seamount/conformance/at_negative/test_at_e1_malicious_payload.py",
+  "thermocline": "0.3.1",
+  "type": "task",
+  "envelope_id": "00000000-0000-0000-0000-00000000e100",
+  "issuer": "alice-node",
+  "unknown_top_level_field": "MUST_BE_REJECTED",
+  "task": {
+    "type": "data.compute",
+    "parameters": {"digits": 10}
+  }
+}
