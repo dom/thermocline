@@ -25,7 +25,68 @@ cross-language ports validate against.
 
 ## [0.1.0] - 2026-05-12
 
-(Suite milestone — see CHANGELOG content filled in by Task 5 with Added / Implemented / Deferred / Known limitations sections.)
+Suite milestone: first coordinated v0.1.0 release of the Thermocline suite
+(thermocline-py + photophore + seamount). Three identically-versioned git
+tags land on the same UTC date with the message
+`v0.1.0 — coordinated with thermocline v0.1.0 + photophore v0.1.0 + seamount v0.1.0`.
+
+### Added
+
+- `docs/adr/` — 5 MADR-lite ADRs (ADR-0001 Python 3.11; ADR-0002 Pydantic v2;
+  ADR-0003 single canonical JSON path; ADR-0004 BLAKE3 with `algo_version`;
+  ADR-0005 no in-process key material).
+- `docs/install.md`, `docs/ops.md` (placeholder), `docs/quickstart.md`
+  (30-min cross-repo walkthrough), `docs/index.md`.
+- `scripts/tag-v0.1.0.sh` release coordinator with `--dry-run` mode.
+- README §"Architecture Decision Records" linking to local + photophore
+  cross-refs.
+
+### Implemented
+
+- **THERMO-01** — Cross-impl spec-patch pattern: discovered Phase 1/2/3
+  spec ambiguities are landed as README amendments at the draft version.
+  cirdan→thermocline rename (`thermocline@5c0d87c`); `Sensitive[T]` discipline;
+  Receipt private constructor invariant; brine-scheme keystore-only constraint.
+- **THERMO-02** — JSON Schema artifacts under `thermocline/schema/` for
+  task, task_result, job, job_result, error envelopes (Draft 2020-12).
+- **THERMO-03..05** — Pydantic v2 envelope models; `model_config = ConfigDict(extra="forbid")`;
+  strict validation at the boundary.
+- **THERMO-06** — Conformance fixture corpus under `thermocline/conformance/`
+  with YAML manifests, surface tags, and `phase:` provenance per fixture.
+  Phase 4 backfilled phase tags + added AT-A3, AT-A6, AT-E1..E5 fixtures.
+- **THERMO-07** — `SUPPORTED_VERSIONS` lists `0.3.0`, `0.3.1`; rejects
+  unknown spec versions at validation time.
+- **IDENT-01..05** — `IdentityProvider` Protocol; brine ed25519 reference
+  adapter; keystore-only constraint; `Receipt` private constructor;
+  separate public-key + seed stores (BL-01).
+- **SP-3.3-01..03** — Spec amendments landing in this release: receipt
+  canonicalization invariant, dispatch_signature pre-fill ordering, receipt
+  field tolerance. See ## [0.3.1] above.
+
+### Deferred to subsequent milestones
+
+- Rust / TypeScript / Swift reference implementations (post-v0.1)
+- Job envelopes formal lifecycle (v0.2)
+- Hardware-anchored Apple Silicon Secure Enclave keystore (v0.2 — D-11)
+- Full MADR (problem/drivers/options/pros-cons) ADR audit pass (post-v0.1)
+- Keep-a-Changelog full-spec migration (Changed / Fixed / Security
+  subsections) (post-v0.1)
+- CI-triggered tagging on release-branch push (post-v0.1)
+
+### Known limitations
+
+- Default `python-keyring` macOS Keychain entries are software-backed
+  (encrypted at rest, gated by user's login session). Hardware-anchored
+  Apple Silicon Secure Enclave entries require a developer signing identity;
+  deferred to v0.2. v0.1 threat model is satisfied without Secure Enclave:
+  key material never leaves the keystore.
+- Linux + Windows ops paths documented best-effort; CI-tested matrix only
+  covers ubuntu-latest (non-keystore tests) + macos-latest (keystore tests).
+- Conformance fixture filename drift retained: `AT-C1-replayed-envelope.json`
+  tests AT-C2 (replay); `AT-C5-unsupported-version.json` tests THERMO-07
+  not AT-C5; `AT-A4-audit-log-tampering.json` tests channel MITM not audit
+  tamper. Documented in MANIFEST.yaml `notes:` fields; not renamed
+  (preserves cross-language port stability per Plan 04-01 Pitfall 3).
 
 ## [0.3.0-draft]
 
