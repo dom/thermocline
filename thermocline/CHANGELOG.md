@@ -9,7 +9,25 @@ The reference implementation lives at `thermocline/python/`; the JSON Schema
 artifacts under `thermocline/schema/` are the language-agnostic contract that
 cross-language ports validate against.
 
-## v0.3.1 (in progress — Phase 1 + Phase 2)
+## [0.3.1] - 2026-05-12
+
+### Spec amendments (SP-3.3-01..03 — Phase 3 surfaced; Phase 4 promotes to README)
+
+- **SP-3.3-01 — Receipt-signature canonicalization invariant**: README §"Receipt Signatures" amended with normative paragraph requiring verifiers to canonicalize the envelope with `receipt_signature.sig = ""` (empty string), NOT removed. Eliminates cross-impl reproduction-by-reverse-engineering on the receipt path.
+- **SP-3.3-02 — Dispatch_signature pre-fill ordering**: README §"Dispatch Signatures" amended. All non-`sig` fields MUST be populated BEFORE canonicalization+signing.
+- **SP-3.3-03 — Receipt field tolerance**: README §"Receipt Signatures" amended. Verifiers SHOULD accept `sig` OR `bytes_hex`; emitters MUST use `sig`.
+
+> Phase 3 03-03-SUMMARY initially classified these as coordinator-internal changes (the spec was right; the coordinator was wrong). Phase 4 reclassifies them as spec clarifications because any non-Python implementation will reverse-engineer the Python coordinator to discover them. Shipping as README amendments is the cross-impl-spec-patch pattern established by THERMO-01.
+
+`SUPPORTED_VERSIONS` in `thermocline-py` already includes `"0.3.1"` (Phase 1).
+
+### Implemented (Phase 1 + Phase 2 inheritance)
+
+## [0.1.0] - 2026-05-12
+
+(Suite milestone — see CHANGELOG content filled in by Task 5 with Added / Implemented / Deferred / Known limitations sections.)
+
+## [0.3.0-draft]
 
 Discovery phase: implementing `thermocline-py` against the published v0.3.0
 spec surfaced the following patches. Each is recorded here and applied in the

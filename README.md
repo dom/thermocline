@@ -473,6 +473,31 @@ storage.
 - A rotated key remains valid for verification of previously signed envelopes
   but MUST NOT be used for new signatures
 
+### Dispatch Signatures
+
+The `dispatch_signature` block on `task` and `job` envelopes binds the envelope
+to the dispatching sovereign node. It is computed over the canonical-JSON form
+of the entire envelope.
+
+**SP-3.3-02 (v0.3.1) — Field pre-fill ordering**: Implementations MUST populate all non-`sig` fields of `dispatch_signature` (`signer`, `key_scheme`, `ts`, `algo`) BEFORE canonicalization and signing. The `sig` field SHALL be the empty string `""` during canonicalization. Failure to pre-fill any field will produce a signature that the verifier cannot reproduce.
+
+### Receipt Signatures
+
+The `receipt_signature` block on `task_result` and `job_result` envelopes binds
+the result to the forge that produced it. Verification reproduces the
+canonicalization the signer used.
+
+**SP-3.3-01 (v0.3.1) — Canonicalization invariant**: When verifying a `receipt_signature`, implementations MUST canonicalize the envelope with the `receipt_signature.sig` field set to the empty string `""`, NOT removed. The signer SHALL produce the signature over this same canonicalization shape. Removing the field would cause map-key set divergence between signer and verifier.
+
+Example:
+
+```json
+// Before signing / verification canonicalization:
+{ "...envelope...": "...", "receipt_signature": { "signer": "...", "key_scheme": "brine", "ts": "...", "algo": "ed25519", "sig": "" } }
+```
+
+**SP-3.3-03 (v0.3.1) — Field tolerance**: Verifiers SHOULD accept `receipt_signature.sig` as either a hex-encoded string (preferred) or a `bytes_hex` field carrying the same value. Implementations writing receipts MUST emit `sig`; reading them MUST accept both for backward compatibility with pre-0.3.1 drafts.
+
 ---
 
 ## Threat Model
