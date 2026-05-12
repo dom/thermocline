@@ -1,0 +1,9 @@
+{
+  "_at_surface": "AT-A6",
+  "_description": "Audit log tamper marker; the behavioral test lives in photophore at test_at_a6_audit_log_tamper.py. The contract: any single-byte tamper of any column (payload, prev_hash, channel_id, etc.) MUST cause verify_chain() to return (False, broken_at) where broken_at is the id of the first invalid entry encountered.",
+  "_phase_wired": 4,
+  "_expect_error_code": null,
+  "_test_file": "photophore/python/tests/at_negative/test_at_a6_audit_log_tamper.py",
+  "tamper_target": "payload",
+  "expected_failure": "verify_chain returns (False, broken_at)"
+}
