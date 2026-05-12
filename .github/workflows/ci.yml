@@ -1,0 +1,66 @@
+name: thermocline CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        working-directory: thermocline/python
+        run: pip install -e ".[dev]"
+      - name: Ruff
+        working-directory: thermocline/python
+        run: ruff check .
+      - name: Mypy --strict
+        working-directory: thermocline/python
+        run: mypy --strict src/
+      - name: Pip-audit
+        run: pip-audit
+      - name: Network-isolation lint
+        run: python tools/ast_lint_network_isolation.py thermocline/python/src/
+      - name: Print lint (CONF-06)
+        run: python tools/ast_lint_no_print.py thermocline/python/src/
+      - name: Canonical-JSON lint (Pitfall 11)
+        working-directory: thermocline/python
+        run: thermocline-check-no-json-dumps
+      - name: AT coverage (thermocline = AT-C*)
+        run: python tools/at_coverage.py
+      # Note: at_coverage_total.py (17/17 suite roll-up) is invoked only via
+      # thermocline/scripts/tag-v0.1.0.sh (Plan 04-02) — not in CI, because
+      # the suite roll-up requires sibling photophore/ + seamount/ checkouts
+      # that this workflow does not perform. Per-repo at_coverage.py runs in
+      # each repo's CI.
+      - name: Property coverage (CONF-03 4/4 @ max_examples=200)
+        run: python tools/property_coverage.py
+        env:
+          # CI runs in soft mode: missing TARGETS in sibling repos -> WARN.
+          # tag-v0.1.0.sh sets PROPERTY_COVERAGE_STRICT=1 for the full
+          # cross-repo audit.
+          PROPERTY_COVERAGE_STRICT: "0"
+          THERMOCLINE_SUITE_ROOT: ${{ github.workspace }}
+      - name: Pytest (non-keystore)
+        working-directory: thermocline/python
+        run: pytest tests/ -m "not keystore" -q
+
+  keystore-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        working-directory: thermocline/python
+        run: pip install -e ".[dev]"
+      - name: Pytest (keystore-marked)
+        working-directory: thermocline/python
+        run: pytest tests/ -m keystore -q
