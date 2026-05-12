@@ -148,10 +148,28 @@ def test_invalid_fixtures_referenced_by_manifest_exist_and_parse() -> None:
         _load_json(path)
 
 
-def test_invalid_fixture_count_is_six() -> None:
-    """Filesystem-side check: exactly six AT-C JSON files committed."""
+def test_invalid_fixture_count_covers_all_at_c_surfaces() -> None:
+    """Filesystem-side check: at least one AT-C JSON fixture per surface AT-C1..AT-C6.
+
+    Phase 4 added AT-C5-result-policy-modified.json as the canonical AT-C5
+    fixture and retained the misnamed AT-C5-unsupported-version.json for
+    backward compatibility (it actually tests THERMO-07, not AT-C5 — see
+    Plan 04-01 SUMMARY). Total count may grow over time as Phase 4+
+    fixtures land alongside the originals; the load-bearing assertion is
+    "every AT-C<n> surface has at least one fixture."
+    """
+    import re
     files = sorted((CONFORMANCE_DIR / "invalid").glob("AT-C*.json"))
-    assert len(files) == 6, f"expected 6 AT-C JSON fixtures, found {len(files)}: {files}"
+    surfaces_found: set[str] = set()
+    for f in files:
+        m = re.match(r"^AT-(C\d)-", f.name)
+        if m:
+            surfaces_found.add(f"AT-{m.group(1)}")
+    expected = {"AT-C1", "AT-C2", "AT-C3", "AT-C4", "AT-C5", "AT-C6"}
+    assert surfaces_found >= expected, (
+        f"AT-C surface coverage incomplete: missing {expected - surfaces_found}; "
+        f"found files: {[f.name for f in files]}"
+    )
 
 
 # ---------------------------------------------------------------------------
