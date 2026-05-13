@@ -26,8 +26,7 @@ from typing import Any
 
 import keyring
 import pytest
-from keyring.backends import fail
-from keyring.backends import null
+from keyring.backends import fail, null
 
 
 def test_brine_refuses_to_start_when_no_keyring(

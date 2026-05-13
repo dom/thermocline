@@ -22,7 +22,6 @@ from thermocline import (
 )
 from thermocline.identity import Verifier as _Verifier  # for _declared_scheme tests
 
-
 # ---------------------------------------------------------------------------
 # Helpers -- the test file lives at thermocline/python/tests/, so parents[3]
 # is the repo root (thermocline/). Run from anywhere; no cwd assumptions.

@@ -32,7 +32,6 @@ import pytest
 from thermocline.identity import Receipt
 from thermocline.schemes import KeyScheme
 
-
 # ---------------------------------------------------------------------------
 # Runtime gate (D-01 / T-03-01).
 

@@ -15,7 +15,6 @@ from typing import ClassVar
 import pytest
 
 from thermocline import (
-    IdentityProvider,
     Receipt,
     Signature,
     Verifier,

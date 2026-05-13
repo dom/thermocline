@@ -8,8 +8,6 @@ checkability). The brine round-trip lives in tests/test_identity_brine_roundtrip
 """
 from __future__ import annotations
 
-from typing import Protocol, get_type_hints
-
 import pytest
 
 from thermocline import (
@@ -21,7 +19,6 @@ from thermocline import (
 )
 from thermocline.errors import SchemeError
 from thermocline.schemes import KeyScheme
-
 
 # ---------------------------------------------------------------------------
 # IdentityProvider Protocol shape (IDENT-01).

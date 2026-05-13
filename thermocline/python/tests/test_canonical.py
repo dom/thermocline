@@ -12,7 +12,6 @@ import pytest
 from thermocline import ContentBlock, Sensitive, Task, canonicalize
 from thermocline.errors import CanonicalizationError
 
-
 # ---------------------------------------------------------------------------
 # Determinism / key ordering.
 
