@@ -9,7 +9,7 @@ The reference implementation lives at `thermocline/python/`; the JSON Schema
 artifacts under `thermocline/schema/` are the language-agnostic contract that
 cross-language ports validate against.
 
-## [0.3.1] - 2026-05-12
+## [0.3.1] - 2026-05-13
 
 ### Spec amendments (SP-3.3-01..03 — Phase 3 surfaced; Phase 4 promotes to README)
 
@@ -23,7 +23,7 @@ cross-language ports validate against.
 
 ### Implemented (Phase 1 + Phase 2 inheritance)
 
-## [0.1.0] - 2026-05-12
+## [0.1.0] - 2026-05-13
 
 Suite milestone: first coordinated v0.1.0 release of the Thermocline suite
 (thermocline-py + photophore + seamount). Three identically-versioned git
