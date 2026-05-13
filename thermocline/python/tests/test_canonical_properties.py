@@ -28,11 +28,11 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from hypothesis import HealthCheck, given, settings, strategies as st
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 
 from thermocline import ContentBlock, Sensitive
 from thermocline.canonical import canonicalize
-
 
 # ---------------------------------------------------------------------------
 # Strategies.

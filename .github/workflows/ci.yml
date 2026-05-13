@@ -63,4 +63,7 @@ jobs:
         run: pip install -e ".[dev]"
       - name: Pytest (keystore-marked)
         working-directory: thermocline/python
-        run: pytest tests/ -m keystore -q
+        # Exit 5 = "no tests collected"; treat as success while no tests carry
+        # the @pytest.mark.keystore marker. Once tests are marked, pytest will
+        # exit 0 (or non-zero on real failures) and the `|| [...]` arm is bypassed.
+        run: pytest tests/ -m keystore -q || [ $? -eq 5 ]

@@ -18,7 +18,6 @@ from pydantic import BaseModel, ConfigDict
 
 from thermocline.sensitive import Sensitive
 
-
 # ---------------------------------------------------------------------------
 # Pure-Python wrapper behavior.
 
@@ -107,13 +106,16 @@ def test_validate_passes_through_existing_sensitive() -> None:
 
 
 def test_validate_rejects_unknown_type() -> None:
-    with pytest.raises(Exception):  # Pydantic surfaces as ValidationError
+    # Sensitive validator raises TypeError; Pydantic does not wrap TypeError.
+    with pytest.raises(TypeError):
         _SensitiveBlock(content=42)  # type: ignore[arg-type]
 
 
 def test_validate_rejects_invalid_base64() -> None:
-    # JSON path with malformed base64.
-    with pytest.raises(Exception):  # Pydantic ValidationError wrapping ValueError
+    from pydantic import ValidationError
+
+    # JSON path with malformed base64; Pydantic wraps the ValueError.
+    with pytest.raises(ValidationError):
         _SensitiveBlock.model_validate({"content": "this is not !! valid base64 ??"})
 
 

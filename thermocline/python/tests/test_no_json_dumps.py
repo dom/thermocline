@@ -25,7 +25,6 @@ from thermocline.scripts.check_no_json_dumps import (
     scan,
 )
 
-
 # ---------------------------------------------------------------------------
 # Live gate.
 

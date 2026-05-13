@@ -395,7 +395,8 @@ __all__ = [
     "ErrorEnvelope",
     "Job",
     "JobResult",
-    "ResultPolicy",    # Public since Plan 02-03 (OQ-2). Backward-compat alias _ResultPolicy retained.
+    # Public since Plan 02-03 (OQ-2). Backward-compat alias _ResultPolicy retained.
+    "ResultPolicy",
     "Task",
     "TaskResult",
     # The exception is part of the envelope module's public contract because

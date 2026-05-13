@@ -22,7 +22,7 @@ from .envelope import (
     ErrorEnvelope,
     Job,
     JobResult,
-    ResultPolicy,    # Public since Plan 02-03 (OQ-2 resolution)
+    ResultPolicy,  # Public since Plan 02-03 (OQ-2 resolution)
     Task,
     TaskResult,
 )
@@ -55,7 +55,8 @@ __all__ = [
     "JobResult",
     "ErrorEnvelope",
     "ContentBlock",
-    # Result policy model (public since Plan 02-03 / OQ-2). Backward-compat alias _ResultPolicy retained in envelope.py.
+    # Result policy model (public since Plan 02-03 / OQ-2).
+    # Backward-compat alias _ResultPolicy retained in envelope.py.
     "ResultPolicy",
     # Privacy primitive.
     "Sensitive",
