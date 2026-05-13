@@ -24,7 +24,11 @@ jobs:
         working-directory: thermocline/python
         run: mypy --strict src/
       - name: Pip-audit
-        run: pip-audit
+        # CVE-2026-3219 / CVE-2026-6357 are against `pip` itself (the build
+        # tool). Track upstream; ignore here so pip-audit gates project deps,
+        # not the runner's bundled pip. Remove --ignore-vuln once GitHub's
+        # macos/ubuntu images ship pip >= 26.1.
+        run: pip-audit --ignore-vuln CVE-2026-3219 --ignore-vuln CVE-2026-6357
       - name: Network-isolation lint
         run: python tools/ast_lint_network_isolation.py thermocline/python/src/
       - name: Print lint (CONF-06)
