@@ -32,3 +32,8 @@ uv.lock
 
 # local tooling local permission rules — operator-specific, not version-controlled
 local tool settings
+
+# Internal workspace (kept locally, not for public repo)
+.planning/
+memory/
+local tool workspace
