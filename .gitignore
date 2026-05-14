@@ -29,3 +29,6 @@ htmlcov/
 
 # uv lock — dev-only artifact (repository README: pip-install for end users; uv for dev)
 uv.lock
+
+# local tooling local permission rules — operator-specific, not version-controlled
+local tool settings
