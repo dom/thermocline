@@ -23,7 +23,7 @@ reference adapter holds no key material between RPCs; the adapter refuses to
 start when `python-keyring` cannot reach the platform secure keystore (no
 fall-back to file or env-var storage). `Receipt` is constructible only by
 `IdentityProvider.verify` returning success — "skipped verification" cannot
-be expressed in code (IDENT-04 / Phase 1 BL-03).
+be expressed in code (IDENT-04).
 
 ## Consequences
 
@@ -34,11 +34,9 @@ be expressed in code (IDENT-04 / Phase 1 BL-03).
 - ✗ Performance: each signature is a keystore RPC. For high-throughput dispatch
   this could add latency; v0.1 dispatch volume makes this acceptable.
 - ✗ macOS Secure Enclave hardware-anchored entries require a developer signing
-  identity; deferred to v0.2 per CHANGELOG known-limitations.
+  identity; deferred to a subsequent milestone (see CHANGELOG known-limitations).
 
 ## References
 
-- IDENT-02, IDENT-04, IDENT-05 in REQUIREMENTS.md
-- repository README "Tech — keys" entry
-- Phase 1 LEARNINGS BL-03 (keystore-required guard)
-- `thermocline/python/src/thermocline/identity.py`
+- IDENT-02, IDENT-04, IDENT-05 in `thermocline/README.md`
+- `thermocline/python/src/thermocline/identity.py` (`BrineProvider.__init__` keystore-required guard)

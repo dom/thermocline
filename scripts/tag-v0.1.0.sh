@@ -38,8 +38,8 @@ echo "  tag:        $TAG"
 echo "  dry-run:    $DRY_RUN"
 echo ""
 
-# Phase 1: precondition checks (read-only).
-info "Phase 1 — preconditions"
+# Step 1: precondition checks (read-only).
+info "Step 1 — preconditions"
 for repo in "${REPOS[@]}"; do
     REPO_PATH="$SUITE_ROOT/$repo"
     echo ""
@@ -85,9 +85,9 @@ for repo in "${REPOS[@]}"; do
     popd >/dev/null
 done
 
-# Phase 2: pre-tag lint sweep (mirror CI order — lints before pytest).
+# Step 2: pre-tag lint sweep (mirror CI order — lints before pytest).
 echo ""
-info "Phase 2 — pre-tag lint sweep"
+info "Step 2 — pre-tag lint sweep"
 for repo in "${REPOS[@]}"; do
     REPO_PATH="$SUITE_ROOT/$repo"
     echo ""
@@ -110,9 +110,9 @@ for repo in "${REPOS[@]}"; do
     popd >/dev/null
 done
 
-# Phase 2b: thermocline-only cross-repo gates (not in any single repo's CI).
+# Step 2b: thermocline-only cross-repo gates (not in any single repo's CI).
 echo ""
-info "Phase 2b — cross-repo gates (thermocline-only)"
+info "Step 2b — cross-repo gates (thermocline-only)"
 pushd "$SUITE_ROOT/thermocline" >/dev/null
 if [[ -f tools/at_coverage_total.py ]]; then
     python tools/at_coverage_total.py || err "thermocline: at_coverage_total.py failed (suite-wide AT roll-up)"
@@ -125,9 +125,9 @@ if [[ -f tools/property_coverage.py ]]; then
 fi
 popd >/dev/null
 
-# Phase 3: test suite.
+# Step 3: test suite.
 echo ""
-info "Phase 3 — test suites"
+info "Step 3 — test suites"
 for repo in "${REPOS[@]}"; do
     REPO_PATH="$SUITE_ROOT/$repo"
     echo ""
@@ -160,9 +160,9 @@ for repo in "${REPOS[@]}"; do
     popd >/dev/null
 done
 
-# Phase 4: tag (with dry-run).
+# Step 4: tag (with dry-run).
 echo ""
-info "Phase 4 — tagging"
+info "Step 4 — tagging"
 for repo in "${REPOS[@]}"; do
     REPO_PATH="$SUITE_ROOT/$repo"
     echo ""

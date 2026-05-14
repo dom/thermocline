@@ -59,7 +59,7 @@ installed automatically. Platform-specific notes:
   prompts.
 
 If the platform keystore is unavailable, `BrineProvider` raises
-`KeystoreUnavailableError` and refuses to start (IDENT-05 / Phase 1 BL-03).
+`KeystoreUnavailableError` and refuses to start (IDENT-05).
 
 ## 5. Known Limitations (v0.1)
 
