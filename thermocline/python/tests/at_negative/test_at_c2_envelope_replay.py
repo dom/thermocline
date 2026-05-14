@@ -25,10 +25,10 @@ def test_envelope_replay_fixture_well_formed() -> None:
     dispatches first_dispatch (audit-logged), attempts replay (must reject).
     """
     fixture = _CONFORMANCE / "invalid" / "AT-C1-replayed-envelope.json"
-    # Note (Pitfall 3): the existing fixture is filed under AT-C1 because Phase 1
-    # naming drift; the JSON content tests AT-C2 (replay). The MANIFEST.yaml
-    # encodes the authoritative mapping. We accept this filename mismatch and
-    # surface it as a documented Phase 4 known limitation.
+    # Note: the existing fixture is filed under AT-C1 due to an early naming
+    # drift; the JSON content tests AT-C2 (replay). The MANIFEST.yaml encodes
+    # the authoritative mapping. We accept this filename mismatch and surface
+    # it as a documented known limitation.
     data = json.loads(fixture.read_text())
     assert "envelope_pair" in data, "AT-C2: fixture must carry envelope_pair"
     pair = data["envelope_pair"]

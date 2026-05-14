@@ -37,5 +37,5 @@
     "tamper_method": "PRAGMA writable_schema=ON; DROP TRIGGER entries_no_update; UPDATE entries SET prev_hash='deadbeef...' WHERE id=entry_2_id; PRAGMA writable_schema=OFF",
     "detection_method": "AuditLog.verify_chain() re-walks the chain, checks each entry's prev_hash against the previous entry's entry_hash"
   },
-  "notes": "The '(real hash ...)' placeholders are intentional. Phase 4 conformance harness (CONF-04) computes deterministic hashes from test vectors. Phase 2 ships the wire-shape contract. The Hypothesis property test in test_audit_chain_property.py exhaustively tests both payload and prev_hash tamper paths with >=100 generated cases."
+  "notes": "The '(real hash ...)' placeholders are intentional. The cross-suite conformance harness (CONF-04) computes deterministic hashes from test vectors. This fixture ships the wire-shape contract. The Hypothesis property test in test_audit_chain_property.py exhaustively tests both payload and prev_hash tamper paths with >=100 generated cases."
 }

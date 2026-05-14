@@ -13,9 +13,9 @@ code and zero policy logic. It establishes:
   byte content. `repr`/`str` are redacted; `.reveal()` is the only unwrap path.
 - `KeyScheme` enum, `SUPPORTED_VERSIONS`, and an `EnvelopeError` exception
   hierarchy with stable string error codes.
-- (Plan 02) `thermocline.canonical.canonicalize` — the single canonical-JSON
+- `thermocline.canonical.canonicalize` — the single canonical-JSON
   signing-input path across the entire suite (RFC 8785 / JCS via `rfc8785`).
-- (Plan 03) `IdentityProvider` Protocol + `brine` reference adapter (PyNaCl
+- `IdentityProvider` Protocol + `brine` reference adapter (PyNaCl
   Ed25519) that delegates every signature to the platform keystore.
 - JSON Schema Draft 2020-12 artifacts under `thermocline/schema/`, generated
   from the Pydantic models with a CI drift check.
@@ -84,14 +84,13 @@ assert roundtripped == task
 
 - Spec: [`../README.md`](../README.md) (Thermocline v0.3.0-draft) — the source
   of truth for envelope shape and field semantics.
-- Phase 1 context:
-  [`../.planning/phases/01-thermocline-py-foundations/01-CONTEXT.md`](../.planning/phases/01-thermocline-py-foundations/01-CONTEXT.md)
-  — design decisions D-01 through D-04 (Receipt private constructor, schema
-  drift check, `Sensitive[T]`, conformance manifest format).
-- Pitfalls register:
-  [`../.planning/research/PITFALLS.md`](../.planning/research/PITFALLS.md) —
-  Pitfall 4 (`Sensitive[T]` discipline), Pitfall 11 (`json.dumps` is
-  forbidden), Pitfall 12 (Pydantic v1 patterns are forbidden).
+- Design discipline (load-bearing rules enforced by tests and CI):
+  - `Sensitive[T]` discipline — bytes never leak via repr/str/logger.
+  - `json.dumps` is forbidden in signing paths (canonical JSON only,
+    enforced by `tests/test_no_json_dumps.py`).
+  - Pydantic v1 patterns (`.dict()`, `.json()`) are forbidden by lint.
+  - Receipt construction is gated behind a module-private sentinel so a
+    `Receipt` always represents a verified envelope.
 
 ## License
 

@@ -24,7 +24,7 @@
   "$id": "https://thermocline.spec/schema/v0.3.1/error.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Structured error response.\n\nMirrors pi-forge's ``task_error`` envelope (the spec README does not yet\nformalize one \u2014 THERMO-01 carry-over candidate). Phase 2/3 may extend\nwith ``references`` if the spec adds them.",
+  "description": "Structured error response.\n\nMirrors pi-forge's ``task_error`` envelope (the spec README does not yet\nformalize one \u2014 THERMO-01 carry-over candidate). Future minors may\nextend with ``references`` if the spec adds them.",
   "properties": {
     "envelope_id": {
       "anyOf": [

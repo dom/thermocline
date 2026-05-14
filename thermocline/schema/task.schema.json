@@ -63,7 +63,7 @@
     },
     "ResultPolicy": {
       "additionalProperties": false,
-      "description": "``result_policy`` block \u2014 issuer-authored result handling rules.\n\nPhase 1 ships the model only; Photophore (Phase 2) authors policy values.\n\nPublic since Plan 02-03 (OQ-2 resolution). Prior name was ``_ResultPolicy``\n(private); renamed to public ``ResultPolicy`` so Photophore and future\ncross-language ports can import without depending on a private name.",
+      "description": "``result_policy`` block \u2014 issuer-authored result handling rules.\n\nthermocline-py ships the model only; Photophore authors policy values.\n\nPublic name is ``ResultPolicy``; renamed from a private ``_ResultPolicy``\nin v0.3 so Photophore and future cross-language ports can import without\ndepending on a private name.",
       "properties": {
         "persist_to_shared": {
           "items": {
@@ -92,7 +92,7 @@
     },
     "_DispatchSignature": {
       "additionalProperties": false,
-      "description": "``dispatch_signature`` block carried on signed envelopes.\n\nPlan 03 implements signing; this model just round-trips the wire shape.",
+      "description": "``dispatch_signature`` block carried on signed envelopes.\n\nSigning happens in :mod:`thermocline.identity`; this model just\nround-trips the wire shape.",
       "properties": {
         "channel_id": {
           "title": "Channel Id",
@@ -152,7 +152,7 @@
     },
     "_Shadow": {
       "additionalProperties": false,
-      "description": "Photophore-generated shadow placed into a tier-1 ``ContentBlock``.\n\nSpec: ``thermocline/README.md`` \u00a7 Task Envelope (`shadow` substructure).\nPhotophore (Phase 2) generates these; thermocline-py only needs to round-\ntrip them.",
+      "description": "Photophore-generated shadow placed into a tier-1 ``ContentBlock``.\n\nSpec: ``thermocline/README.md`` \u00a7 Task Envelope (`shadow` substructure).\nPhotophore generates these; thermocline-py only needs to round-trip them.",
       "properties": {
         "abstraction": {
           "title": "Abstraction",

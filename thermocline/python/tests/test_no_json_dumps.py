@@ -44,9 +44,9 @@ def test_allowlist_contents_are_stable() -> None:
     """Adding to the allowlist requires touching this test (deliberately).
 
     The lint allowlist has two entries by construction (build_schemas + the
-    lint script itself). Phase 4 hardening (T-02-06) may grow it; growth must
-    be intentional. Bumping this assertion alongside an ALLOWLIST change is
-    the gate. (Documented in CONTEXT.md / threat model T-02-06.)
+    lint script itself). Future hardening may grow it; growth must be
+    intentional. Bumping this assertion alongside an ALLOWLIST change is the
+    gate.
     """
     assert ALLOWLIST == frozenset(
         {"scripts/build_schemas.py", "scripts/check_no_json_dumps.py"}

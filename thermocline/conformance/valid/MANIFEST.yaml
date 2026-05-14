@@ -5,8 +5,8 @@
 # ``thermocline/schema/`` AND against the Pydantic models in
 # ``thermocline.envelope`` (``Task.parse_strict`` / ``TaskResult.parse_strict``).
 #
-# Phase 4's full harness will round-trip these through a real forge; Phase 1's
-# harness validates structurally only.
+# The cross-suite forge_conformance harness round-trips these through a real
+# forge; the thermocline-side harness validates structurally only.
 pairs:
   - id: pi-100-digits
     description: "Compute the first 100 digits of pi via pi-forge (key_scheme=none)."
@@ -22,4 +22,4 @@ fixtures:
   - fixture: AT-A3-priority-order-explicit-tag.json
     surface: AT-A3
     phase: 2
-    description: "Documents the explicit-tag-wins priority rule from CLASS-01. An attacker-controlled @photophore:public tag promotes tier-0 content if and only if the issuer node honors the tag — by design. AT-A3 is mitigated by issuer-side controls (SHADOW-04 irreversibility, audit-log surveillance, AT-A1 channel-impersonation defenses), NOT by the classifier. Behavioral wire: photophore/python/tests/test_classifier_priority.py."
+    description: "Documents the explicit-tag-wins priority rule from CLASS-01. An attacker-controlled @photophore:public tag promotes tier-0 content if and only if the issuer node honors the tag — by design. AT-A3 is mitigated by issuer-side controls (SHADOW-04 irreversibility, audit-log surveillance, AT-A1 channel-impersonation defenses), NOT by the classifier. Behavioral wire: ``photophore/python/tests/test_classifier_priority.py``."

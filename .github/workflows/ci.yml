@@ -39,10 +39,10 @@ jobs:
       - name: AT coverage (thermocline = AT-C*)
         run: python tools/at_coverage.py
       # Note: at_coverage_total.py (17/17 suite roll-up) is invoked only via
-      # thermocline/scripts/tag-v0.1.0.sh (Plan 04-02) — not in CI, because
-      # the suite roll-up requires sibling photophore/ + seamount/ checkouts
-      # that this workflow does not perform. Per-repo at_coverage.py runs in
-      # each repo's CI.
+      # the release script (thermocline/scripts/tag-v0.1.0.sh) — not in CI,
+      # because the suite roll-up requires sibling photophore/ + seamount/
+      # checkouts that this workflow does not perform. Per-repo at_coverage.py
+      # runs in each repo's CI.
       - name: Property coverage (CONF-03 4/4 @ max_examples=200)
         run: python tools/property_coverage.py
         env:

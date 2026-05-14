@@ -1,5 +1,5 @@
-"""BL-01 closure: cross-role verification must work without the verifier
-holding the signer's private seed.
+"""Cross-role verification must work without the verifier holding the
+signer's private seed.
 
 These tests prove that:
 
@@ -11,7 +11,7 @@ These tests prove that:
 * Single-node self-signing flows (the original behaviour) continue to work.
 * Lookup order: when a node holds BOTH a registered public key AND a seed
   for the same identity, the registered public key is returned
-  (verify-role takes precedence -- W6 closure).
+  (verify-role takes precedence).
 """
 from __future__ import annotations
 
@@ -41,14 +41,9 @@ def test_verifier_only_role_verifies_foreign_signature(brine_in_memory_keyring):
     assert _kr.get_password("thermocline.test.verifier", "alice") is None
 
     # Dual-form key_scheme (top-level AND nested under dispatch_signature):
-    # this is a transitional necessity for Task 2 (BL-01) landing BEFORE
-    # Task 3 (BL-02). At Task 2 land-time, Verifier.verify still reads the
-    # OLD top-level envelope.get('key_scheme') -- without the top-level field
-    # it would raise SchemeError on a None != 'brine' mismatch and Task 2's
-    # automated verify gate would be unreachable. Once Task 3 lands, the
-    # _declared_scheme rewrite reads the nested location first and the
-    # top-level field becomes a tolerated fallback. The same envelope
-    # passes under both code paths -- no churn after Task 3.
+    # the _declared_scheme helper reads the nested location first and the
+    # top-level field is a tolerated fallback. The same envelope passes
+    # under both code paths.
     envelope = {
         "type": "task",
         "envelope_id": "test-1",
@@ -77,13 +72,13 @@ def test_public_key_lookup_falls_back_to_seed_when_no_pubkey_registered(
 
 
 def test_pubkey_store_is_consulted_before_seed(brine_in_memory_keyring):
-    """W6 closure: when a node holds BOTH a registered foreign public key
-    AND a seed for the same identity, ``public_key`` returns the registered
-    foreign public key (NOT the seed-derived verify key).
+    """When a node holds BOTH a registered foreign public key AND a seed for
+    the same identity, ``public_key`` returns the registered foreign public
+    key (NOT the seed-derived verify key).
 
-    This pins the load-bearing lookup-order invariant -- Task 5's
-    ``test_rotate_preserves_registered_public_key_for_same_identity``
-    depends on this ordering.
+    This pins the load-bearing lookup-order invariant --
+    ``test_rotate_preserves_registered_public_key_for_same_identity`` in
+    ``test_identity_generate_idempotent.py`` depends on this ordering.
     """
     p = BrineProvider(keyring_service="thermocline.test")
 

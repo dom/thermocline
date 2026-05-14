@@ -54,8 +54,7 @@ class _Shadow(BaseModel):
     """Photophore-generated shadow placed into a tier-1 ``ContentBlock``.
 
     Spec: ``thermocline/README.md`` § Task Envelope (`shadow` substructure).
-    Photophore (Phase 2) generates these; thermocline-py only needs to round-
-    trip them.
+    Photophore generates these; thermocline-py only needs to round-trip them.
     """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -94,11 +93,11 @@ class _TaskBlock(BaseModel):
 class ResultPolicy(BaseModel):
     """``result_policy`` block — issuer-authored result handling rules.
 
-    Phase 1 ships the model only; Photophore (Phase 2) authors policy values.
+    thermocline-py ships the model only; Photophore authors policy values.
 
-    Public since Plan 02-03 (OQ-2 resolution). Prior name was ``_ResultPolicy``
-    (private); renamed to public ``ResultPolicy`` so Photophore and future
-    cross-language ports can import without depending on a private name.
+    Public name is ``ResultPolicy``; renamed from a private ``_ResultPolicy``
+    in v0.3 so Photophore and future cross-language ports can import without
+    depending on a private name.
     """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -108,16 +107,16 @@ class ResultPolicy(BaseModel):
     strip_before_persist: list[str] = Field(default_factory=list)
 
 
-# Backward-compat alias for Phase 1 callers that imported ``_ResultPolicy``.
-# Public name is ``ResultPolicy`` per OQ-2 (Phase 2 / 02-03 spec patch).
-# Alias remains for at least one minor cycle (v0.3.x); Phase 4 may remove it.
+# Backward-compat alias for pre-v0.3 callers that imported ``_ResultPolicy``.
+# Alias remains for at least one minor cycle (v0.3.x); may be removed in v0.4.
 _ResultPolicy = ResultPolicy  # noqa: E305
 
 
 class _DispatchSignature(BaseModel):
     """``dispatch_signature`` block carried on signed envelopes.
 
-    Plan 03 implements signing; this model just round-trips the wire shape.
+    Signing happens in :mod:`thermocline.identity`; this model just
+    round-trips the wire shape.
     """
 
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -376,8 +375,8 @@ class ErrorEnvelope(_VersionedEnvelope):
     """Structured error response.
 
     Mirrors pi-forge's ``task_error`` envelope (the spec README does not yet
-    formalize one — THERMO-01 carry-over candidate). Phase 2/3 may extend
-    with ``references`` if the spec adds them.
+    formalize one — THERMO-01 carry-over candidate). Future minors may
+    extend with ``references`` if the spec adds them.
     """
 
     type: Literal["task_error", "job_error"] = "task_error"
@@ -395,7 +394,7 @@ __all__ = [
     "ErrorEnvelope",
     "Job",
     "JobResult",
-    # Public since Plan 02-03 (OQ-2). Backward-compat alias _ResultPolicy retained.
+    # Public since v0.3. Backward-compat alias _ResultPolicy retained.
     "ResultPolicy",
     "Task",
     "TaskResult",

@@ -114,7 +114,9 @@ def main(argv: list[str] | None = None) -> int:
         print("", file=sys.stderr)
         print(
             "Use thermocline.canonical.canonicalize for signing input. "
-            "See thermocline/.planning/research/PITFALLS.md (Pitfall 11).",
+            "json.dumps emits non-canonical output and cannot be used as a "
+            "signing input without breaking signature verification across "
+            "implementations.",
             file=sys.stderr,
         )
         return 1

@@ -1,12 +1,10 @@
 """IDENT-05: Brine adapter refuses to start without a working secure keystore.
 
-Plan 01-03 / Task 2 behavioral coverage; revised in Plan 01-04 / Task 4
-(BL-03 closure) so the fail/null-backend tests use the REAL production
-classes (``keyring.backends.fail.Keyring`` and
-``keyring.backends.null.Keyring``) instead of hand-rolled synthetic
-look-alikes. Both production classes are named ``Keyring`` -- the previous
-substring heuristic on ``type(backend).__name__`` missed both. Direct
-``isinstance`` identity is the only correct probe.
+The fail/null-backend tests use the REAL production classes
+(``keyring.backends.fail.Keyring`` and ``keyring.backends.null.Keyring``)
+rather than hand-rolled synthetic look-alikes. Both production classes are
+named ``Keyring`` -- a substring heuristic on ``type(backend).__name__``
+misses both. Direct ``isinstance`` identity is the only correct probe.
 
 The brine adapter MUST refuse to start when the platform secure keystore is
 unavailable; it MUST NOT fall back to file-based or env-var-based key
@@ -51,9 +49,9 @@ def test_brine_refuses_to_start_when_no_keyring(
 def test_brine_refuses_to_start_with_fail_backend(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """BL-03: production keyring.backends.fail.Keyring is named 'Keyring'
-    (not 'FailKeyring') -- the substring heuristic missed it. The
-    ``isinstance`` probe against the real class catches it.
+    """Production keyring.backends.fail.Keyring is named 'Keyring' (not
+    'FailKeyring'). A substring heuristic would miss it; the ``isinstance``
+    probe against the real class catches it.
     """
     from thermocline.errors import KeystoreUnavailableError
     from thermocline.identity import BrineProvider
@@ -71,8 +69,8 @@ def test_brine_refuses_to_start_with_fail_backend(
 def test_brine_refuses_to_start_with_null_backend(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """BL-03: production keyring.backends.null.Keyring is named 'Keyring'
-    (not 'NullKeyring') -- caught by the ``isinstance`` probe.
+    """Production keyring.backends.null.Keyring is named 'Keyring' (not
+    'NullKeyring') -- caught by the ``isinstance`` probe.
     """
     from thermocline.errors import KeystoreUnavailableError
     from thermocline.identity import BrineProvider

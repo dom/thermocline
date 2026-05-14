@@ -2,16 +2,17 @@
 
 This file is consumed by every test file in ``tests/`` (pytest auto-discovers
 ``conftest.py``). It provides the ``brine_in_memory_keyring`` fixture used by
-the BL-01 / BL-02 / BL-03 / BL-04 closure tests added in Plan 01-04.
+the cross-role / scheme-lookup / keystore-probe / generate-idempotent
+behavioral tests.
 
-Coexistence note (Plan 01-04 / W7 closure):
+Coexistence note:
 The pre-existing module-scoped ``fake_keyring`` fixture inside
 ``tests/test_identity_brine_roundtrip.py`` is intentionally preserved as-is.
 That fixture uses a ``MagicMock`` backend and is wired ONLY for the existing
-13 brine round-trip tests. The new ``brine_in_memory_keyring`` fixture below
-uses a REAL ``keyring.backend.KeyringBackend`` subclass so the BL-03 isinstance
-probe sees a live, non-fail/non-null class. The two fixtures are NOT
-interchangeable (the MagicMock cannot satisfy isinstance checks against
+13 brine round-trip tests. The ``brine_in_memory_keyring`` fixture below
+uses a REAL ``keyring.backend.KeyringBackend`` subclass so the keystore-probe
+isinstance check sees a live, non-fail/non-null class. The two fixtures are
+NOT interchangeable (the MagicMock cannot satisfy isinstance checks against
 real keyring backend classes); they coexist intentionally.
 """
 from __future__ import annotations
@@ -28,7 +29,7 @@ class _InMemoryKeyringBackend(KeyringBackend):
 
     Class name is deliberately NOT ``Keyring`` so it is unambiguously distinct
     from ``keyring.backends.fail.Keyring`` and ``keyring.backends.null.Keyring``
-    (both of which the BL-03 isinstance probe rejects).
+    (both of which the keystore-probe isinstance check rejects).
     """
 
     priority: float = 100  # type: ignore[assignment]

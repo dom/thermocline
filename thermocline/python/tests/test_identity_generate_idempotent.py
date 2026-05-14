@@ -1,4 +1,4 @@
-"""BL-04 closure: generate() refuses to clobber; rotate() is the explicit
+"""``generate()`` refuses to clobber; ``rotate()`` is the explicit
 replacement path.
 """
 from __future__ import annotations
@@ -53,6 +53,6 @@ def test_rotate_preserves_registered_public_key_for_same_identity(
     p.rotate(identity="alice")
 
     # The public-key store entry is unchanged -- public_key lookup hits the
-    # public-key store FIRST (BL-01 closure ordering), so it returns the
-    # registered foreign_pub even after rotate replaces the seed.
+    # public-key store FIRST (documented in BrineProvider.public_key), so it
+    # returns the registered foreign_pub even after rotate replaces the seed.
     assert p.public_key(identity="alice") == foreign_pub

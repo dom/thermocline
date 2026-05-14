@@ -1,6 +1,4 @@
-"""D-01 Receipt-private-constructor tests — runtime AND static gates.
-
-Plan 01-03 / Task 1.
+"""Receipt-private-constructor tests — runtime AND static gates.
 
 Two gates:
 
@@ -33,7 +31,7 @@ from thermocline.identity import Receipt
 from thermocline.schemes import KeyScheme
 
 # ---------------------------------------------------------------------------
-# Runtime gate (D-01 / T-03-01).
+# Runtime gate.
 
 
 def test_receipt_direct_construction_raises_at_runtime() -> None:
@@ -90,7 +88,7 @@ def test_receipt_with_foreign_sentinel_object_still_rejects() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Static gate (D-01 / T-03-10).
+# Static gate.
 
 
 def test_mypy_strict_rejects_receipt_misuse() -> None:
@@ -99,7 +97,7 @@ def test_mypy_strict_rejects_receipt_misuse() -> None:
     This is the linchpin static gate. If a future change weakens
     ``Receipt.__init__`` (e.g., gives ``_token`` a default), mypy will accept the
     fixture, this test will fail, and the build will break — exactly the signal
-    we want. T-03-10.
+    we want.
     """
     tests_dir = os.path.dirname(os.path.abspath(__file__))
     fixture = os.path.join(tests_dir, "fixtures", "receipt_misuse.py")
@@ -112,7 +110,8 @@ def test_mypy_strict_rejects_receipt_misuse() -> None:
         check=False,
     )
     assert result.returncode != 0, (
-        "mypy --strict accepted Receipt misuse — D-01 static check is broken.\n"
+        "mypy --strict accepted Receipt misuse — the private-constructor "
+        "static check is broken.\n"
         f"stdout: {result.stdout}\n"
         f"stderr: {result.stderr}"
     )

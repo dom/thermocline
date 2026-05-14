@@ -42,7 +42,7 @@ def test_result_policy_modification_changes_canonical_bytes() -> None:
 
 @pytest.mark.at_surface("AT-C5")
 def test_result_policy_modified_fixture_present() -> None:
-    """AT-C5 fixture: the new Phase 4 fixture is committed and well-formed."""
+    """AT-C5 fixture: the result-policy-modified fixture is committed and well-formed."""
     fixture = _CONFORMANCE / "invalid" / "AT-C5-result-policy-modified.json"
     assert fixture.is_file(), f"AT-C5: missing fixture {fixture}"
     data = json.loads(fixture.read_text())

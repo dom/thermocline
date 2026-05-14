@@ -6,10 +6,10 @@ the 4 CONF-03 property test files; asserts (a) the `CONF-03 invariant:` marker
 comment is present in source; (b) every @settings(max_examples=N) literal has
 N >= 200.
 
-CONFLICT-03 / Task 7 env-var toggle: when PROPERTY_COVERAGE_STRICT=1 (set by
-release script tag-v0.1.0.sh), missing TARGETS are a hard FAIL (full
-cross-repo audit). Default (`0` or unset) treats missing TARGETS as soft WARN
-so per-repo CI checkouts do not break.
+Env-var toggle: when PROPERTY_COVERAGE_STRICT=1 (set by the release script
+tag-v0.1.0.sh for full cross-repo audits), missing TARGETS are a hard FAIL.
+Default (`0` or unset) treats missing TARGETS as soft WARN so per-repo CI
+checkouts do not break.
 """
 from __future__ import annotations
 import ast

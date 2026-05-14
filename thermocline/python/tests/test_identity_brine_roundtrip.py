@@ -1,26 +1,21 @@
 """Brine adapter end-to-end PyNaCl Ed25519 round-trip tests (IDENT-02 / IDENT-04).
 
-Plan 01-03 / Task 2 behavioral coverage. These tests exercise:
+These tests exercise:
 
 * IDENT-02: real PyNaCl Ed25519 round-trip — generate keypair, sign envelope,
   verify produces a Receipt with expected fields.
-* IDENT-04 / Pitfall 5: tampering any byte of the envelope between sign and
-  verify causes ``verify`` to return None (no Receipt is produced).
-* Pitfall 11: signing input goes through ``canonicalize`` (RFC 8785 / JCS),
-  never ``json.dumps``.
-* IDENT-02 / Pitfall 9: BrineProvider exposes no method whose name leaks key
-  semantics (no ``get_signing_key``, no ``export_seed``, etc.).
+* IDENT-04: tampering any byte of the envelope between sign and verify causes
+  ``verify`` to return None (no Receipt is produced).
+* Signing input goes through ``canonicalize`` (RFC 8785 / JCS), never
+  ``json.dumps``.
+* IDENT-02: BrineProvider exposes no method whose name leaks key semantics
+  (no ``get_signing_key``, no ``export_seed``, etc.).
 * IDENT-03 wired end-to-end: registering BrineProvider with Verifier and
   mutating the signature to claim a different scheme triggers SchemeError.
 
 The tests use an in-memory ``keyring`` mock so they run on any host without
 needing a configured platform keystore. The IDENT-05 keystore-required guard
 is exercised in :mod:`test_identity_keystore_required`.
-
-NOTE: These tests were folded in during Plan 01-03 / Task 3 because the Task 1+2
-executor did not commit the dedicated brine-roundtrip / keystore-required test
-files listed in the plan frontmatter. See 01-03-SUMMARY.md ``Deviations`` for
-the trace.
 """
 from __future__ import annotations
 

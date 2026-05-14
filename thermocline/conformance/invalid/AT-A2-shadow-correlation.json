@@ -3,7 +3,7 @@
   "_description": "Shadow correlation attack — an adversary observing multiple dispatches of identical content across a channel boundary attempts to correlate shadow_ids to reconstruct content provenance. This is structurally prevented by Photophore's SHADOW-06 no-caching guarantee: each call to shadow.generate() with IDENTICAL (content, content_type) inputs produces a DISTINCT shadow_id (fresh UUIDv4 per dispatch). An implementation caching shadows via @lru_cache, @functools.cache, or a module-level dict is non-compliant.",
   "_phase_wired": 2,
   "_requirements": ["SHADOW-01", "SHADOW-02", "SHADOW-06"],
-  "_behavioral_wire": "photophore/python/tests/test_shadow_uniqueness_property.py (Hypothesis: >=100 cases x 100 inner calls, all shadow_ids distinct) + tests/test_shadow_no_caching.py (grep gate + behavioral)",
+  "_behavioral_wire": "photophore/python/tests/test_shadow_uniqueness_property.py (Hypothesis: >=100 cases x 100 inner calls, all shadow_ids distinct) and photophore/python/tests/test_shadow_no_caching.py (grep gate + behavioral)",
   "scenario": {
     "description": "An attacker submits the same tier-1 content block in 100 consecutive dispatches through the same channel and observes the shadow_ids in the outbound envelopes.",
     "content_example": {
@@ -22,5 +22,5 @@
   },
   "expected_behavior": "Non-compliant: any implementation that caches shadow results by (content, content_type) key — whether via @lru_cache, @functools.cache, a module-level dict, or any memoization — MUST be rejected. The shadow_id MUST be a fresh UUIDv4 on every call to generate().",
   "expect_error_code": "SHADOW_ID_REUSE",
-  "notes": "Behaviorally wired in Phase 2 via: (1) Hypothesis property test test_shadow_uniqueness_property.py (>= 100 outer cases x 100 inner generate() calls with identical inputs = >= 10,000 total calls, all shadow_ids distinct); (2) grep gate in test_shadow_no_caching.py (asserts zero @lru_cache/@functools.cache/@cache/= _shadow_cache in photophore.shadow). Phase 3 dispatch coordinator ensures no Shadow object is retained after dispatch completes."
+  "notes": "Behaviorally wired in Photophore via: (1) Hypothesis property test test_shadow_uniqueness_property.py (>= 100 outer cases x 100 inner generate() calls with identical inputs = >= 10,000 total calls, all shadow_ids distinct); (2) grep gate in test_shadow_no_caching.py (asserts zero @lru_cache/@functools.cache/@cache/= _shadow_cache in photophore.shadow). The dispatch coordinator ensures no Shadow object is retained after dispatch completes."
 }

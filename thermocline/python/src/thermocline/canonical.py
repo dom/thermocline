@@ -1,12 +1,12 @@
 """RFC 8785 canonical JSON — the only path for signing input across the suite.
 
-Phase 1 design decision and Pitfall 11: Python's stdlib ``json`` module emits
-non-canonical output (``sort_keys`` defaults to False, separators include
-whitespace). A signature computed over ``json``-stdlib output does not verify
-across implementations whose map iteration order differs. Every signing or
-verifying path in the Thermocline suite (Plan 03 brine adapter, Phase 2 audit
-chain, Phase 3 dispatch coordinator, future cross-language ports) MUST funnel
-through ``thermocline.canonical.canonicalize``.
+Python's stdlib ``json`` module emits non-canonical output (``sort_keys``
+defaults to False, separators include whitespace). A signature computed
+over ``json``-stdlib output does not verify across implementations whose
+map iteration order differs. Every signing or verifying path in the
+Thermocline suite (brine adapter, audit chain, dispatch coordinator,
+future cross-language ports) MUST funnel through
+``thermocline.canonical.canonicalize``.
 
 The implementation delegates to the third-party ``rfc8785`` package, which
 implements RFC 8785 / JCS exactly: object keys are sorted lexicographically

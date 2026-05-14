@@ -1,9 +1,9 @@
-"""Behavioral regression tests for BL-02 closure: Verifier.verify must read
-``key_scheme`` from the canonical nested location for real envelope shapes.
+"""Behavioral regression tests: Verifier.verify must read ``key_scheme`` from
+the canonical nested location for real envelope shapes.
 
-These tests load real conformance fixtures from disk to close the synthetic-test
-loophole that masked BL-02 (every prior dispatch test used flat dicts with
-``key_scheme`` at the top level -- none exercised the production lookup path).
+These tests load real conformance fixtures from disk to close the synthetic
+loophole where flat-dict envelopes with top-level ``key_scheme`` masked the
+production lookup path through ``dispatch_signature`` / ``receipt_signature``.
 """
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def _load_fixture(rel_path: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# B5 closure: _declared_scheme is exhaustive over all five envelope types.
+# ``_declared_scheme`` is exhaustive over all five envelope types.
 
 
 def test_declared_scheme_task():
@@ -61,30 +61,30 @@ def test_declared_scheme_job_result():
 
 
 def test_declared_scheme_task_error_returns_none():
-    """B5: error envelopes are unsigned by spec; _declared_scheme returns None."""
+    """Error envelopes are unsigned by spec; ``_declared_scheme`` returns None."""
     assert _Verifier._declared_scheme({"type": "task_error"}) is None
 
 
 def test_declared_scheme_job_error_returns_none():
-    """B5: error envelopes are unsigned by spec; _declared_scheme returns None."""
+    """Error envelopes are unsigned by spec; ``_declared_scheme`` returns None."""
     assert _Verifier._declared_scheme({"type": "job_error"}) is None
 
 
 # ---------------------------------------------------------------------------
-# B1 closure: fallback for typed envelopes without a populated nested block.
+# Fallback for typed envelopes without a populated nested block.
 
 
 def test_declared_scheme_task_with_top_level_keyscheme_no_dispatch_signature():
-    """B1: type='task' + top-level key_scheme + no dispatch_signature ->
-    falls back to top-level. This is the path that allows the existing
-    test_identity_brine_roundtrip._minimal_envelope tests to keep passing.
+    """type='task' + top-level key_scheme + no dispatch_signature ->
+    falls back to top-level. This is the path that allows the
+    ``test_identity_brine_roundtrip._minimal_envelope`` tests to keep passing.
     """
     env = {"type": "task", "key_scheme": "brine"}  # NO dispatch_signature
     assert _Verifier._declared_scheme(env) == "brine"
 
 
 def test_declared_scheme_task_with_empty_dispatch_signature_block():
-    """B1: type='task' + dispatch_signature={} (empty) + top-level key_scheme ->
+    """type='task' + dispatch_signature={} (empty) + top-level key_scheme ->
     falls back to top-level (the empty nested block has no key_scheme key).
     """
     env = {"type": "task", "dispatch_signature": {}, "key_scheme": "brine"}
@@ -98,11 +98,11 @@ def test_declared_scheme_typeless_envelope_uses_top_level():
 
 
 # ---------------------------------------------------------------------------
-# BL-02 closure tests -- real envelope round-trip.
+# Real-envelope round-trip.
 
 
 def test_verify_real_task_envelope_through_nested_key_scheme(brine_in_memory_keyring):
-    """BL-02: Verifier.verify reads ``dispatch_signature.key_scheme`` for ``type='task'``."""
+    """Verifier.verify reads ``dispatch_signature.key_scheme`` for ``type='task'``."""
     envelope = _load_fixture("thermocline/conformance/valid/task-pi-100-digits.json")
     # Fixture ships with key_scheme='none' -- overwrite to brine for the round-trip.
     envelope["dispatch_signature"]["key_scheme"] = "brine"
@@ -129,7 +129,7 @@ def test_verify_real_task_envelope_through_nested_key_scheme(brine_in_memory_key
 def test_verify_real_task_result_envelope_through_nested_key_scheme(
     brine_in_memory_keyring,
 ):
-    """BL-02: Verifier.verify reads ``receipt_signature.key_scheme`` for ``type='task_result'``."""
+    """Verifier.verify reads ``receipt_signature.key_scheme`` for ``type='task_result'``."""
     envelope = _load_fixture(
         "thermocline/conformance/valid/task-result-pi-100-digits.json"
     )
@@ -154,15 +154,16 @@ def test_verify_real_task_result_envelope_through_nested_key_scheme(
 
 
 def test_at_c4_fixture_raises_scheme_error_through_verifier(brine_in_memory_keyring):
-    """B4 closure: AT-C4 wired BEHAVIORALLY. The fixture's
-    dispatch_signature.key_scheme is 'brine' and its _signature_actual_scheme
-    metadata field is 'pgp' (documented mismatch). Construct a Signature with
-    scheme=KeyScheme.PGP so declared='brine' mismatches actual='pgp' -- that is
-    exactly what AT-C4 detects.
+    """AT-C4 wired BEHAVIORALLY. The fixture's
+    ``dispatch_signature.key_scheme`` is 'brine' and its
+    ``_signature_actual_scheme`` metadata field is 'pgp' (documented
+    mismatch). Construct a Signature with ``scheme=KeyScheme.PGP`` so
+    declared='brine' mismatches actual='pgp' -- that is exactly what AT-C4
+    detects.
 
-    (Previous draft used KeyScheme.BRINE which would NOT have triggered the
-    mismatch path; the test would have passed for the wrong reason or raised
-    IdentityError instead of SchemeError.)
+    (Using ``KeyScheme.BRINE`` here would NOT trigger the mismatch path; the
+    test would pass for the wrong reason or raise IdentityError instead of
+    SchemeError.)
     """
     envelope = _load_fixture(
         "thermocline/conformance/invalid/AT-C4-key-scheme-mismatch.json"
@@ -171,7 +172,7 @@ def test_at_c4_fixture_raises_scheme_error_through_verifier(brine_in_memory_keyr
     assert envelope.get("_signature_actual_scheme") == "pgp"
 
     bogus_sig = Signature(
-        scheme=KeyScheme.PGP,            # B4: PGP -- mismatches the fixture's 'brine'
+        scheme=KeyScheme.PGP,            # PGP -- mismatches the fixture's 'brine'
         bytes_=b"\x00" * 64,
         signer_identity="attacker",
     )

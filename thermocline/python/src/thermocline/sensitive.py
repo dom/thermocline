@@ -1,11 +1,10 @@
 """``Sensitive[T]`` — the redacting wrapper for privacy-sensitive content.
 
-Phase 1 design decision D-03: every privacy-sensitive content field in the
-envelope models is typed ``Sensitive[bytes]`` from day 1. The wrapper has:
+Every privacy-sensitive content field in the envelope models is typed
+``Sensitive[bytes]``. The wrapper has:
 
 - A redacting ``__repr__`` and ``__str__`` so accidental ``print`` calls or
-  ``logger.info("%s", envelope)`` calls cannot leak the underlying bytes
-  (Pitfall 4).
+  ``logger.info("%s", envelope)`` calls cannot leak the underlying bytes.
 - A ``.reveal()`` accessor — the only path to the wrapped value. Use sites
   that need the raw bytes call this method explicitly, which makes leakage
   visible in code review.

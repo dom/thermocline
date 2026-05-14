@@ -1,4 +1,4 @@
-"""Conformance fixture harness — Phase 1 slice (D-04 / THERMO-06).
+"""Conformance fixture harness (THERMO-06).
 
 This harness validates the conformance corpus that any v0.3.1-compliant
 implementation can run against:
@@ -9,17 +9,15 @@ implementation can run against:
   ``TaskResult.parse_strict`` AND validates against the JSON Schema artifacts
   under ``thermocline/schema/``.
 * The ``invalid/`` directory covers all six Thermocline AT-C surfaces (AT-C1..AT-C6).
-* Each invalid fixture is well-formed JSON (parseable) so future phases can
-  load it without a syntax-checking step.
-* For surfaces wired in Phase 1 (AT-C5 / AT-C6), the actual error code raised
-  by ``Task.parse_strict`` matches the manifest's ``expect_error_code``.
+* Each invalid fixture is well-formed JSON (parseable) so cross-impl harnesses
+  can load it without a syntax-checking step.
+* For surfaces wired here (AT-C5 / AT-C6), the actual error code raised by
+  ``Task.parse_strict`` matches the manifest's ``expect_error_code``.
 
-Surfaces tagged ``phase: 2+`` in the manifest are committed for Photophore /
-Seamount tests to wire against — Phase 1 validates them structurally only.
-
-The Phase 4 conformance harness (Plan 04-04) will extend this to walk every
-manifest entry and produce a unified pass/fail report; the manifest schema is
-designed to support that extension without restructuring.
+Surfaces whose behavioral wire lives in Photophore or Seamount are committed
+here structurally only; the manifest's ``phase`` field records which suite
+component owns the behavioral assertion. The conformance harness is designed
+to be extended without restructuring as new surfaces gain wires.
 """
 from __future__ import annotations
 
@@ -63,7 +61,7 @@ def test_top_level_manifest_well_formed() -> None:
     manifest = _load_yaml(CONFORMANCE_DIR / "MANIFEST.yaml")
     assert manifest["schema_version"] == "0.3.1"
     assert "phases_covered" in manifest
-    # Phase 1 must declare it covers the AT-C envelope-side surfaces.
+    # thermocline-py covers the AT-C envelope-side surfaces.
     phases = manifest["phases_covered"]
     phase1 = next(p for p in phases if p["phase"] == 1)
     assert EXPECTED_AT_C_SURFACES.issubset(set(phase1["surfaces"]))
@@ -119,11 +117,11 @@ def test_invalid_manifest_covers_all_at_c_surfaces() -> None:
 
 
 def test_invalid_manifest_has_six_surface_entries() -> None:
-    """Tight upper bound — exactly six AT-C entries in Phase 1, no fewer, no extras yet."""
+    """Tight upper bound — exactly six AT-C entries, no fewer, no extras yet."""
     manifest = _load_yaml(CONFORMANCE_DIR / "invalid" / "MANIFEST.yaml")
     at_c_entries = [e for e in manifest["fixtures"] if e["surface"].startswith("AT-C")]
     assert len(at_c_entries) == 6, (
-        f"expected exactly 6 AT-C entries in Phase 1; found {len(at_c_entries)}"
+        f"expected exactly 6 AT-C entries; found {len(at_c_entries)}"
     )
 
 
@@ -141,22 +139,21 @@ def test_invalid_fixtures_referenced_by_manifest_exist_and_parse() -> None:
     for entry in manifest["fixtures"]:
         path = CONFORMANCE_DIR / "invalid" / entry["fixture"]
         assert path.exists(), f"manifest references missing fixture: {path}"
-        # Must be parseable as JSON (well-formed). Phase 1 does NOT require
-        # every fixture to also pass Pydantic — surfaces tagged phase>=2 are
-        # exercised by future phases, and several are deliberately
-        # *non*-envelope-shaped fixture documents.
+        # Must be parseable as JSON (well-formed). The thermocline-side harness
+        # does NOT require every fixture to also pass Pydantic — surfaces tagged
+        # ``phase >= 2`` are exercised by Photophore / Seamount, and several
+        # are deliberately *non*-envelope-shaped fixture documents.
         _load_json(path)
 
 
 def test_invalid_fixture_count_covers_all_at_c_surfaces() -> None:
     """Filesystem-side check: at least one AT-C JSON fixture per surface AT-C1..AT-C6.
 
-    Phase 4 added AT-C5-result-policy-modified.json as the canonical AT-C5
-    fixture and retained the misnamed AT-C5-unsupported-version.json for
-    backward compatibility (it actually tests THERMO-07, not AT-C5 — see
-    Plan 04-01 SUMMARY). Total count may grow over time as Phase 4+
-    fixtures land alongside the originals; the load-bearing assertion is
-    "every AT-C<n> surface has at least one fixture."
+    ``AT-C5-result-policy-modified.json`` is the canonical AT-C5 fixture; the
+    misnamed ``AT-C5-unsupported-version.json`` is retained for backward
+    compatibility (it actually tests THERMO-07, not AT-C5). Total count may
+    grow over time as new fixtures land alongside the originals; the
+    load-bearing assertion is "every AT-C<n> surface has at least one fixture."
     """
     import re
     files = sorted((CONFORMANCE_DIR / "invalid").glob("AT-C*.json"))
@@ -173,9 +170,9 @@ def test_invalid_fixture_count_covers_all_at_c_surfaces() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Phase-1-wired surfaces: the manifest's expect_error_code must match what the
-# Phase 1 implementation actually raises. Phase 2+ surfaces are wired in their
-# respective phases.
+# Thermocline-wired surfaces: the manifest's expect_error_code must match what
+# the thermocline-py implementation actually raises. Surfaces owned by
+# Photophore / Seamount are wired in their respective repos.
 
 
 @pytest.mark.parametrize(
@@ -188,7 +185,8 @@ def test_invalid_fixture_count_covers_all_at_c_surfaces() -> None:
 def test_phase1_wired_invalid_fixtures_raise_expected_errors(
     surface: str, expected_code: str
 ) -> None:
-    """Manifest expect_error_code MUST match the actual Phase 1 error path.
+    """Manifest expect_error_code MUST match the actual thermocline-py error
+    path.
 
     AT-C5: ``Task.parse_strict`` raises :class:`UnsupportedVersionError` with
     ``code="UNSUPPORTED_VERSION"`` for any thermocline value not in
@@ -228,19 +226,20 @@ def test_phase1_wired_invalid_fixtures_raise_expected_errors(
 
 
 def test_phase1_unwired_surfaces_are_phase_tagged() -> None:
-    """Surfaces not wired in Phase 1 must carry ``phase: 2`` (or later).
+    """Surfaces not wired in thermocline-py must carry ``phase: 2`` (or later).
 
-    This is the discipline that lets future phases find their work — every
-    structurally-only fixture in Phase 1 has a ``phase`` field pointing at the
-    phase that will wire it.
+    This is the discipline that lets Photophore / Seamount find their work —
+    every structurally-only fixture has a ``phase`` field pointing at the
+    suite component that will wire it.
     """
     manifest = _load_yaml(CONFORMANCE_DIR / "invalid" / "MANIFEST.yaml")
-    phase1_wired = {"AT-C4", "AT-C5", "AT-C6"}  # AT-C4 is wired in test_identity_dispatch
+    # AT-C4 is wired in test_identity_dispatch; AT-C5 / AT-C6 are wired here.
+    thermocline_wired = {"AT-C4", "AT-C5", "AT-C6"}
     for entry in manifest["fixtures"]:
         surface = entry["surface"]
-        if surface in phase1_wired:
+        if surface in thermocline_wired:
             continue
         assert entry.get("phase", 1) >= 2, (
-            f"surface {surface} is not Phase-1-wired and must declare ``phase: 2`` "
-            f"(or later) in the manifest; got {entry.get('phase')!r}"
+            f"surface {surface} is not thermocline-py-wired and must declare "
+            f"``phase: 2`` (or later) in the manifest; got {entry.get('phase')!r}"
         )

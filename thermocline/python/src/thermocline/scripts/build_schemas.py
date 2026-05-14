@@ -1,9 +1,9 @@
 """Generate JSON Schema Draft 2020-12 artifacts from the Pydantic v2 envelope models.
 
-Phase 1 design decision D-02: schemas are generated from the canonical Pydantic
-models and committed under ``thermocline/schema/``. CI runs ``--check`` and
-fails on drift (deleting a Pydantic field locally and re-running --check exits
-non-zero with a diff naming the changed file).
+Schemas are generated from the canonical Pydantic models and committed under
+``thermocline/schema/``. CI runs ``--check`` and fails on drift (deleting a
+Pydantic field locally and re-running --check exits non-zero with a diff
+naming the changed file).
 
 Modes
 -----
@@ -74,9 +74,9 @@ def _serialize_schema(schema: dict[str, Any]) -> str:
     sort_keys=True + indent=2 + trailing newline gives a stable byte sequence
     that diff cleanly across regenerations and across third-party reviewers.
     """
-    # OK: emits a schema artifact to disk (not a signing input). Pitfall 11
-    # forbids json.dumps as signing input only — canonical JSON via rfc8785
-    # ships in Plan 02.
+    # OK: emits a schema artifact to disk (not a signing input). The
+    # no-json-dumps lint forbids json.dumps as signing input only —
+    # canonical JSON via rfc8785 is used wherever a signature is produced.
     # pitfall-11 OK: schema artifact, not signing input.
     return json.dumps(  # not a signing path
         schema, indent=2, sort_keys=True

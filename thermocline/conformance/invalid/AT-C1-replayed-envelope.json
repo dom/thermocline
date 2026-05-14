@@ -1,6 +1,6 @@
 {
   "_at_c_surface": "AT-C1",
-  "_description": "Replayed envelope. The receiver has previously seen envelope_id 'a1b2c3d4-0000-4000-8000-000000000001' and committed it to the audit log; this second arrival must be rejected with code ENVELOPE_REPLAY. Phase 2 audit-log dedupe wires the actual rejection.",
+  "_description": "Replayed envelope. The receiver has previously seen envelope_id 'a1b2c3d4-0000-4000-8000-000000000001' and committed it to the audit log; this second arrival must be rejected with code ENVELOPE_REPLAY. Photophore's audit-log dedupe wires the actual rejection.",
   "envelope_pair": {
     "first_dispatch": {
       "thermocline": "0.3.1",

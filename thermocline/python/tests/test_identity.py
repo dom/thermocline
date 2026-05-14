@@ -1,7 +1,5 @@
 """Unit tests for the IdentityProvider Protocol shape and Signature redaction.
 
-Plan 01-03 / Task 1.
-
 These tests don't exercise real signing — they assert the *type-system shape* of
 the public API (Protocol membership, Signature value-type contract, runtime
 checkability). The brine round-trip lives in tests/test_identity_brine_roundtrip.
@@ -29,7 +27,7 @@ def test_identity_provider_is_protocol() -> None:
     # ``Protocol`` is a marker; check via the ``_is_protocol`` attribute that
     # the typing machinery sets on subclasses, plus a positive duck check.
     assert getattr(IdentityProvider, "_is_protocol", False), (
-        "IdentityProvider should be a typing.Protocol — Plan 01-03 Task 1 IDENT-01"
+        "IdentityProvider should be a typing.Protocol — IDENT-01"
     )
 
 
@@ -37,7 +35,7 @@ def test_identity_provider_is_runtime_checkable() -> None:
     """IDENT-01: Protocol carries the @runtime_checkable decorator so isinstance works."""
     # ``runtime_checkable`` adds the ``_is_runtime_protocol`` flag.
     assert getattr(IdentityProvider, "_is_runtime_protocol", False), (
-        "IdentityProvider should be runtime_checkable — Plan 01-03 Task 1"
+        "IdentityProvider should be runtime_checkable — IDENT-01"
     )
 
 

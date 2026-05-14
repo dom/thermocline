@@ -5,11 +5,11 @@
 # of truth for the expected code; the harness asserts that real implementation
 # behavior matches.
 #
-# Phase tagging:
-#   phase=1   → wired by Phase 1 harness (test_conformance_fixtures.py).
-#   phase=2+  → committed for future phases (Photophore audit log, dispatch
-#               coordinator, forge handlers); structurally validated only in
-#               Phase 1 (manifest references existing JSON, JSON parses).
+# ``phase`` records which suite component owns the behavioral wire:
+#   phase=1   → wired by the thermocline-py harness (test_conformance_fixtures.py).
+#   phase=2+  → owned by Photophore (audit log, dispatch coordinator) or
+#               Seamount (forge handlers); structurally validated only here
+#               (manifest references existing JSON, JSON parses).
 #
 # AT-C surface vocabulary follows ../../README.md ("Threat Model" section).
 # AT-A surface vocabulary follows photophore/README.md ("Attack Surfaces and Mitigations").
@@ -20,9 +20,9 @@ fixtures:
     expect_error_code: "ENVELOPE_REPLAY"
     phase: 2
     notes: |
-      Replay detection is the receiver's responsibility; Photophore (Phase 2) dedupes by envelope_id
-      via the audit log. This fixture exercises the spec contract that envelope_id is unique per
-      dispatch — Phase 1 commits it for the Phase 2 audit-log dedupe test to wire against.
+      Replay detection is the receiver's responsibility; Photophore dedupes by envelope_id via
+      the audit log. This fixture exercises the spec contract that envelope_id is unique per
+      dispatch — committed here for the Photophore audit-log dedupe test to wire against.
 
   - fixture: AT-C2-tampered-signature.json
     surface: AT-C2
@@ -30,10 +30,10 @@ fixtures:
     expect_error_code: "SIGNATURE_INVALID"
     phase: 2
     notes: |
-      Tamper detection lives in BrineProvider.verify (Phase 1 / IDENT-04). The fixture pairs an
-      envelope with a signature whose bytes do not match the canonical-JSON of the envelope. The
+      Tamper detection lives in BrineProvider.verify (IDENT-04). The fixture pairs an envelope
+      with a signature whose bytes do not match the canonical-JSON of the envelope. The
       structural fixture (committed here) is the wire-shape; behavioral exercise lives in
-      tests/test_identity.py and the Phase 2 dispatch coordinator's verify-on-receive test.
+      ``tests/test_identity.py`` and the Photophore dispatch coordinator's verify-on-receive test.
 
   - fixture: AT-C3-leaky-shadow.json
     surface: AT-C3
@@ -42,8 +42,8 @@ fixtures:
     phase: 2
     notes: |
       Photophore's shadow-irreversibility test is the gate. This fixture is rejected at
-      shadow-generation time, not at envelope-parse time — Phase 1 commits the JSON for
-      Phase 2 to wire its irreversibility test against.
+      shadow-generation time, not at envelope-parse time — committed here for Photophore
+      to wire its irreversibility test against.
 
   - fixture: AT-C4-key-scheme-mismatch.json
     surface: AT-C4
@@ -74,7 +74,7 @@ fixtures:
       Pydantic v2 raises ValidationError with type 'extra_forbidden' for any unknown field.
       The manifest's expect_error_code maps to this Pydantic error type — the harness translates.
 
-  # --- Photophore AT-A surfaces (Phase 2+) ---
+  # --- Photophore AT-A surfaces (suite component: photophore) ---
 
   - fixture: AT-A1-channel-impersonation.json
     surface: AT-A1
@@ -82,9 +82,9 @@ fixtures:
     expect_error_code: "CHANNEL_IMPERSONATION"
     phase: 3
     notes: |
-      Structural fixture committed in Phase 2 (plan 02-01). Behavioral wire lands in Phase 3
-      (dispatch coordinator resolves channel from keystore and verifies key_scheme match before
-      signing). Phase 2 commits the fixture shape for Phase 3 to load and exercise.
+      Structural fixture committed here for Photophore to load. Behavioral wire lives in the
+      Photophore dispatch coordinator, which resolves the channel from the keystore and verifies
+      key_scheme match before signing.
 
   - fixture: AT-A2-shadow-correlation.json
     surface: AT-A2
@@ -92,16 +92,16 @@ fixtures:
     expect_error_code: "SHADOW_ID_REUSE"
     phase: 2
     notes: |
-      Behaviorally wired in Phase 2 plan 02-03 via:
-        (1) Hypothesis property test tests/test_shadow_uniqueness_property.py
+      Behaviorally wired in Photophore via:
+        (1) Hypothesis property test ``tests/test_shadow_uniqueness_property.py``
             (>= 100 outer cases × 100 inner generate() calls with IDENTICAL inputs =
             >= 10,000 total calls, all shadow_ids distinct; proves no content-keyed cache exists).
-        (2) Grep gate in tests/test_shadow_no_caching.py
+        (2) Grep gate in ``tests/test_shadow_no_caching.py``
             (asserts zero @lru_cache / @functools.cache / _shadow_cache assignments
-            in photophore/python/src/photophore/shadow/).
+            in ``photophore/python/src/photophore/shadow/``).
       Any implementation caching shadow results by (content, content_type) key is non-compliant.
-      Full SHADOW-06 wire: Phase 3 dispatch coordinator ensures no Shadow object is retained
-      after dispatch completes (DISP-03 scope).
+      The dispatch coordinator (DISP-03 scope) ensures no Shadow object is retained after
+      dispatch completes.
 
   - fixture: AT-A4-audit-log-tampering.json
     surface: AT-A4
@@ -109,18 +109,18 @@ fixtures:
     expect_error_code: "AUDIT_CHAIN_BROKEN"
     phase: 2
     notes: |
-      Behaviorally wired in Phase 2 plan 02-01 via Hypothesis property test
-      (photophore/python/tests/test_audit_chain_property.py, AUDIT-08, >=100 examples).
-      The fixture documents the wire-shape contract; test_audit_chain_property.py covers
+      Behaviorally wired in Photophore via Hypothesis property test
+      (``photophore/python/tests/test_audit_chain_property.py``, AUDIT-08, >=100 examples).
+      The fixture documents the wire-shape contract; ``test_audit_chain_property.py`` covers
       both payload-tamper and prev_hash-tamper paths.
 
   - fixture: AT-A5-trust-store-colocation.json
     surface: AT-A5
-    description: "Trust-store co-location — audit.db and channel trust store point to the same file, violating D-04 three-store model."
+    description: "Trust-store co-location — audit.db and channel trust store point to the same file, violating the D-04 three-store model."
     expect_error_code: "TRUST_STORE_COLOCATION"
     phase: 2
     notes: |
-      Behaviorally wired in Phase 2 plan 02-01 via test_channels_separation.py.
-      The test asserts that AuditLog.path != ChannelStore.channels_db_path and that the
+      Behaviorally wired in Photophore via ``test_channels_separation.py``.
+      The test asserts that ``AuditLog.path != ChannelStore.channels_db_path`` and that the
       platform keystore (python-keyring) is not backed by either SQLite file path.
-      The fixture documents the violating_config and compliant_config shapes.
+      The fixture documents the ``violating_config`` and ``compliant_config`` shapes.

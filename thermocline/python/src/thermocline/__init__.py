@@ -11,8 +11,9 @@ ports) import only from this module. The full lock-in surface is::
         IdentityError, SchemeError, KeystoreUnavailableError,
     )
 
-Plan 03 (this plan) added the identity primitives — Protocol, Verifier, brine
-adapter, Signature/Receipt value types, plus the typed identity exceptions.
+Identity primitives — Protocol, Verifier, brine adapter, Signature/Receipt
+value types, plus the typed identity exceptions — are exported alongside
+the envelope shapes and canonical JSON helper.
 """
 from __future__ import annotations
 
@@ -22,7 +23,7 @@ from .envelope import (
     ErrorEnvelope,
     Job,
     JobResult,
-    ResultPolicy,  # Public since Plan 02-03 (OQ-2 resolution)
+    ResultPolicy,  # Public since v0.3 (renamed from private _ResultPolicy)
     Task,
     TaskResult,
 )
@@ -55,8 +56,8 @@ __all__ = [
     "JobResult",
     "ErrorEnvelope",
     "ContentBlock",
-    # Result policy model (public since Plan 02-03 / OQ-2).
-    # Backward-compat alias _ResultPolicy retained in envelope.py.
+    # Result policy model (public since v0.3; renamed from private
+    # _ResultPolicy — alias retained in envelope.py for one minor cycle).
     "ResultPolicy",
     # Privacy primitive.
     "Sensitive",
@@ -65,9 +66,9 @@ __all__ = [
     # Version registry.
     "SUPPORTED_VERSIONS",
     "validate_version",
-    # Canonical JSON (Plan 02 — the single signing-input path).
+    # Canonical JSON — the single signing-input path across the suite.
     "canonicalize",
-    # Identity primitives (Plan 03).
+    # Identity primitives.
     "IdentityProvider",
     "BrineProvider",
     "Verifier",

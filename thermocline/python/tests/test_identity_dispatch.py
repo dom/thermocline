@@ -1,7 +1,5 @@
 """Verifier dispatch end-to-end (without real signing).
 
-Plan 01-03 / Task 1.
-
 These tests use a stub IdentityProvider for non-BRINE schemes so we can probe
 the dispatch logic in isolation, then verify that scheme mismatch between the
 envelope's declared scheme and the signature's actual scheme is rejected
@@ -158,7 +156,8 @@ def test_dispatch_falls_back_to_top_level_for_typeless_envelope(
     brine_in_memory_keyring,
 ):
     """Synthetic envelopes without ``type`` field continue to use top-level
-    ``key_scheme`` -- explicit regression for the BL-02 fallback path.
+    ``key_scheme`` -- explicit regression for the nested-vs-top-level
+    fallback path documented on ``Verifier._declared_scheme``.
     """
     from thermocline import BrineProvider
 

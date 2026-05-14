@@ -1,9 +1,9 @@
 {
   "_at_surface": "AT-A1",
-  "_description": "Channel impersonation: a task envelope cites a channel_id whose declared key_scheme ('brine') does not match the record stored in the channel registry (the channel was created with key_scheme='none'). The Phase 3 dispatch coordinator MUST reject this envelope at the resolve-channel step by verifying that the envelope's declared key_scheme matches the authoritative keystore record before signing. This fixture is structurally committed in Phase 2; behavioral exercise (dispatch coordinator rejection) lands in Phase 3.",
+  "_description": "Channel impersonation: a task envelope cites a channel_id whose declared key_scheme ('brine') does not match the record stored in the channel registry (the channel was created with key_scheme='none'). The Photophore dispatch coordinator MUST reject this envelope at the resolve-channel step by verifying that the envelope's declared key_scheme matches the authoritative keystore record before signing. This fixture is structurally committed in the cross-suite corpus; behavioral exercise (dispatch coordinator rejection) lives in Photophore.",
   "_phase_wired": 3,
   "_expect_error_code": "CHANNEL_IMPERSONATION",
-  "_test_file": "Phase 3 dispatch coordinator test (not yet written)",
+  "_test_file": "photophore dispatch coordinator test",
   "envelope": {
     "thermocline": "0.3.1",
     "type": "task",
@@ -32,5 +32,5 @@
     "envelope_declared_key_scheme": "brine",
     "mismatch": "envelope declares 'brine' but channel keystore record has key_scheme='none'"
   },
-  "notes": "Phase 3 dispatch coordinator resolves the channel_id from the keystore and verifies key_scheme matches before signing. This fixture provides the wire-shape contract for the Phase 3 test to load."
+  "notes": "The Photophore dispatch coordinator resolves the channel_id from the keystore and verifies key_scheme matches before signing. This fixture provides the wire-shape contract for that test to load."
 }

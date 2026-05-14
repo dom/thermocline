@@ -138,9 +138,10 @@ class Receipt:
         if _token is not _RECEIPT_TOKEN:
             raise TypeError(
                 "Receipt is constructible only by IdentityProvider.verify() "
-                "returning success. Direct construction is forbidden by design "
-                "(D-01) — see "
-                ".planning/phases/01-thermocline-py-foundations/01-CONTEXT.md."
+                "returning success. Direct construction is forbidden by design: "
+                "a Receipt represents a verified envelope, and constructing one "
+                "without going through verify() would let unverified envelopes "
+                "appear as if they had passed the privacy fence."
             )
         # ``frozen=True`` forbids attribute assignment after __init__; this is
         # the one acceptable use of object.__setattr__ in this codebase. The
@@ -213,7 +214,7 @@ class Verifier:
     ) -> Receipt | None:
         """Verify ``signature`` against ``envelope`` via the appropriate provider.
 
-        BL-02 closure: ``key_scheme`` lookup is canonical-location-aware via
+        ``key_scheme`` lookup is canonical-location-aware via
         :meth:`_declared_scheme` -- routes by ``envelope.get('type')`` to the
         nested ``dispatch_signature`` / ``receipt_signature`` block, with a
         documented top-level fallback for synthetic flat-dict tests and for
@@ -245,8 +246,8 @@ class Verifier:
     def _declared_scheme(envelope: dict[str, Any]) -> str | None:
         """Read the declared ``key_scheme`` from the canonical nested location.
 
-        Lookup table by envelope ``type`` (BL-02 closure -- exhaustive over
-        the five envelope types defined in :mod:`thermocline.envelope`):
+        Lookup table by envelope ``type`` (exhaustive over the five envelope
+        types defined in :mod:`thermocline.envelope`):
 
         * ``task``, ``job`` -> ``envelope['dispatch_signature']['key_scheme']``
         * ``task_result``, ``job_result`` ->
@@ -299,7 +300,7 @@ class Verifier:
 #
 # Heavy details (round-trip, tamper detection, IDENT-05 keystore guard) are
 # exercised by ``tests/test_identity_brine_roundtrip.py`` and
-# ``tests/test_identity_keystore_required.py`` (Task 2 of Plan 01-03).
+# ``tests/test_identity_keystore_required.py``.
 
 
 _KEYSTORE_SERVICE_DEFAULT: Final[str] = "thermocline.brine"
@@ -350,10 +351,10 @@ class BrineProvider:
                 "(IDENT-05).",
                 code="KEYSTORE_UNAVAILABLE",
             ) from exc
-        # BL-03 closure: isinstance probe against the production fail/null
-        # backend classes. Both classes are named ``Keyring`` -- the previous
-        # substring heuristic on ``type(backend).__name__`` missed both. Direct
-        # class identity is the only correct way.
+        # isinstance probe against the production fail/null backend classes.
+        # Both classes are named ``Keyring`` -- a substring heuristic on
+        # ``type(backend).__name__`` misses both. Direct class identity is
+        # the only correct way.
         if isinstance(backend, (_fail_backend.Keyring, _null_backend.Keyring)):
             raise KeystoreUnavailableError(
                 f"refusing to start: keyring backend is "
@@ -367,10 +368,10 @@ class BrineProvider:
     def generate(self, *, identity: str) -> None:
         """Generate a new Ed25519 keypair and store the seed in the keystore.
 
-        BL-04 closure: refuses to clobber an existing seed. Re-generating an
-        identity is a deliberate, audited operation -- use :meth:`rotate`
-        instead. Calling ``generate`` on an identity that already has a seed
-        raises ``IdentityError(code='IDENTITY_ALREADY_EXISTS')``. Closes a
+        Refuses to clobber an existing seed: re-generating an identity is a
+        deliberate, audited operation -- use :meth:`rotate` instead. Calling
+        ``generate`` on an identity that already has a seed raises
+        ``IdentityError(code='IDENTITY_ALREADY_EXISTS')``. This closes a
         foreseeable data-loss path: re-running a setup script no longer
         destroys the prior signing identity.
 
@@ -402,17 +403,17 @@ class BrineProvider:
     def rotate(self, *, identity: str) -> None:
         """Replace the seed for ``identity`` with a freshly-generated one.
 
-        BL-04: this is the ONLY documented path that overwrites an existing
-        seed. The previous behaviour -- ``generate`` silently overwriting --
-        was a foreseeable data-loss path. Use ``rotate`` for deliberate
-        replacement.
+        This is the ONLY documented path that overwrites an existing seed.
+        ``generate`` refuses to clobber by design; use ``rotate`` for
+        deliberate replacement.
 
         Post-condition: the seed stored at ``(self._keyring_service,
         identity)`` is different from the seed that was there before this
         call. Any :meth:`register_public_key` entry for the same identity is
         independent (it lives under a different keystore key, namespaced by
         ``_PUBKEY_PREFIX``) and is NOT touched by this call -- the
-        seed-vs-public-key orthogonality is the BL-01 lookup-order invariant.
+        seed-vs-public-key orthogonality is the lookup-order invariant
+        exercised in ``test_identity_cross_role.py``.
 
         Raises
         ------
@@ -436,7 +437,7 @@ class BrineProvider:
     def public_key(self, *, identity: str) -> bytes:
         """Return the 32-byte Ed25519 verify key for ``identity``.
 
-        Lookup order (BL-01 closure -- load-bearing):
+        Lookup order (load-bearing):
 
         1. Public-key store -- ``keyring.get_password(self._keyring_service,
            _PUBKEY_PREFIX + identity)``. Populated by
@@ -492,10 +493,10 @@ class BrineProvider:
     ) -> None:
         """Register a foreign node's Ed25519 verify key under ``identity``.
 
-        BL-01 closure: this is the documented path by which a verifier-only
-        role acquires another node's identity material. Public-key entries
-        live under a separate namespace (``_PUBKEY_PREFIX + identity``) so
-        they do not collide with seed entries.
+        This is the documented path by which a verifier-only role acquires
+        another node's identity material. Public-key entries live under a
+        separate namespace (``_PUBKEY_PREFIX + identity``) so they do not
+        collide with seed entries.
 
         Parameters
         ----------
