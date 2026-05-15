@@ -33,3 +33,6 @@ uv.lock
 # Local-only workspaces
 .planning/
 memory/
+
+# Local-only assistant instructions
+AGENTS.md
