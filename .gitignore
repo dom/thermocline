@@ -27,13 +27,9 @@ htmlcov/
 .idea/
 *.swp
 
-# uv lock — dev-only artifact (repository README: pip-install for end users; uv for dev)
+# uv lock — dev-only artifact (pip-install for end users; uv for dev)
 uv.lock
 
-# local tooling local permission rules — operator-specific, not version-controlled
-local tool settings
-
-# Internal workspace (kept locally, not for public repo)
+# Local-only workspaces
 .planning/
 memory/
-local tool workspace

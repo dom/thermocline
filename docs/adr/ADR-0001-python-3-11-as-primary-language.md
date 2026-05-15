@@ -34,6 +34,5 @@ post-v0.1 milestones.
 
 ## References
 
-- PROJECT.md §"Key Decisions"
-- repository README ("Language — Python 3.11+")
+- Repository README §"Constraints" ("Language — Python 3.11+")
 - pyproject.toml files in all four packages
