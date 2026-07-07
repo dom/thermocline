@@ -286,9 +286,11 @@ def test_content_block_redacts_bytes_in_repr() -> None:
 
 def test_content_block_round_trips_bytes_through_json() -> None:
     secret = b"\x00\x01\x02important payload\xff\xfe"
+    # tier 2 is the content-carrying tier; tier-1 blocks carry a shadow only
+    # (invariant #1, enforced by ContentBlock._enforce_tier_semantics).
     block = ContentBlock(
-        tier=1,
-        role="user_file",
+        tier=2,
+        role="task_background",
         content=Sensitive(secret),
     )
     payload = block.model_dump_json()

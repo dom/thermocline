@@ -22,7 +22,14 @@ from __future__ import annotations
 
 from typing import Any, Literal, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 from .errors import UnsupportedVersionError
 from .schemes import KeyScheme
@@ -78,6 +85,47 @@ class ContentBlock(_EnvelopeBase):
     role: str
     content: Sensitive[bytes] | None = None
     shadow: _Shadow | None = None
+
+    @model_validator(mode="after")
+    def _enforce_tier_semantics(self) -> "ContentBlock":
+        """Enforce invariant #1 of the suite: tier determines the payload shape.
+
+        * tier 0 (``local``): must carry neither ``content`` nor ``shadow``.
+          A local block never belongs in a dispatched envelope, so raw
+          ``content`` (or even a ``shadow``) on a tier-0 block is a
+          privacy-boundary violation, not a soft warning.
+        * tier 1 (``shared``): must carry ``shadow`` and must NOT carry
+          ``content`` (dispatched only as an abstraction).
+        * tier 2 (``public``): must carry ``content`` and must NOT carry
+          ``shadow`` (transmitted as-is).
+
+        Prior to 0.4.0 this was documented in a comment and delegated to the
+        policy engine. The envelope layer now enforces it directly so every
+        consumer (and every cross-language port, via the JSON Schema
+        ``if``/``then`` clauses) inherits the rule.
+        """
+        has_content = self.content is not None
+        has_shadow = self.shadow is not None
+        if self.tier == 0:
+            if has_content or has_shadow:
+                raise ValueError(
+                    "tier-0 (local) block must not carry content or shadow in a "
+                    "dispatched envelope: local content never crosses the boundary"
+                )
+        elif self.tier == 1:
+            if not has_shadow:
+                raise ValueError("tier-1 (shared) block requires a shadow")
+            if has_content:
+                raise ValueError(
+                    "tier-1 (shared) block must not carry raw content; it is "
+                    "dispatched only as a shadow"
+                )
+        else:  # tier == 2
+            if not has_content:
+                raise ValueError("tier-2 (public) block requires content")
+            if has_shadow:
+                raise ValueError("tier-2 (public) block must not carry a shadow")
+        return self
 
 
 class _TaskBlock(BaseModel):
