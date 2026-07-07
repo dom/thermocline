@@ -2,6 +2,152 @@
   "$defs": {
     "ContentBlock": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "tier": {
+                "const": 0
+              }
+            },
+            "required": [
+              "tier"
+            ]
+          },
+          "then": {
+            "allOf": [
+              {
+                "anyOf": [
+                  {
+                    "not": {
+                      "required": [
+                        "content"
+                      ]
+                    }
+                  },
+                  {
+                    "properties": {
+                      "content": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "not": {
+                      "required": [
+                        "shadow"
+                      ]
+                    }
+                  },
+                  {
+                    "properties": {
+                      "shadow": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "tier": {
+                "const": 1
+              }
+            },
+            "required": [
+              "tier"
+            ]
+          },
+          "then": {
+            "allOf": [
+              {
+                "properties": {
+                  "shadow": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "shadow"
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "not": {
+                      "required": [
+                        "content"
+                      ]
+                    }
+                  },
+                  {
+                    "properties": {
+                      "content": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "tier": {
+                "const": 2
+              }
+            },
+            "required": [
+              "tier"
+            ]
+          },
+          "then": {
+            "allOf": [
+              {
+                "properties": {
+                  "content": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "content"
+                ]
+              },
+              {
+                "anyOf": [
+                  {
+                    "not": {
+                      "required": [
+                        "shadow"
+                      ]
+                    }
+                  },
+                  {
+                    "properties": {
+                      "shadow": {
+                        "type": "null"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
       "description": "A single context entry inside ``Task.context[]`` or job ``step.context[]``.\n\nA block carries either ``content`` (tier-2 public bytes, wrapped in\n:class:`Sensitive` so repr/log calls don't leak it) OR ``shadow`` (tier-1\nabstraction). Tier-0 (``local``) content never appears in an envelope: the\nPhotophore policy engine strips it before signing.",
       "properties": {
         "content": {

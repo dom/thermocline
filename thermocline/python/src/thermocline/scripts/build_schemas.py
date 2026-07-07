@@ -60,11 +60,72 @@ ENVELOPES: dict[str, type] = {
 }
 
 
+# --- Tier-semantics if/then clauses (invariant #1) -------------------------
+#
+# Pydantic does not emit conditional keywords for a ``model_validator``, so we
+# inject the tier rules into every ``ContentBlock`` $def by hand. This keeps
+# the JSON Schema artifacts (the language-agnostic contract) in lockstep with
+# ``ContentBlock._enforce_tier_semantics`` so cross-language ports inherit the
+# rule. "Absent" tolerates an explicit JSON ``null`` so a model_dump that emits
+# ``"shadow": null`` on a tier-2 block still validates.
+
+_CONTENT_PRESENT: dict[str, Any] = {
+    "required": ["content"],
+    "properties": {"content": {"not": {"type": "null"}}},
+}
+_CONTENT_ABSENT: dict[str, Any] = {
+    "anyOf": [
+        {"not": {"required": ["content"]}},
+        {"properties": {"content": {"type": "null"}}},
+    ]
+}
+_SHADOW_PRESENT: dict[str, Any] = {
+    "required": ["shadow"],
+    "properties": {"shadow": {"not": {"type": "null"}}},
+}
+_SHADOW_ABSENT: dict[str, Any] = {
+    "anyOf": [
+        {"not": {"required": ["shadow"]}},
+        {"properties": {"shadow": {"type": "null"}}},
+    ]
+}
+
+
+def _tier_rule(tier: int, *clauses: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "if": {"properties": {"tier": {"const": tier}}, "required": ["tier"]},
+        "then": {"allOf": list(clauses)},
+    }
+
+
+_CONTENT_BLOCK_TIER_RULES: list[dict[str, Any]] = [
+    # tier 0 (local): no content, no shadow -- never in a dispatched envelope.
+    _tier_rule(0, _CONTENT_ABSENT, _SHADOW_ABSENT),
+    # tier 1 (shared): shadow required, content forbidden.
+    _tier_rule(1, _SHADOW_PRESENT, _CONTENT_ABSENT),
+    # tier 2 (public): content required, shadow forbidden.
+    _tier_rule(2, _CONTENT_PRESENT, _SHADOW_ABSENT),
+]
+
+
+def _inject_tier_rules(schema: dict[str, Any]) -> None:
+    """Attach the tier if/then clauses to every ContentBlock $def in ``schema``."""
+    defs = schema.get("$defs")
+    if not isinstance(defs, dict):
+        return
+    block = defs.get("ContentBlock")
+    if isinstance(block, dict):
+        existing = block.get("allOf")
+        rules = [dict(rule) for rule in _CONTENT_BLOCK_TIER_RULES]
+        block["allOf"] = (list(existing) if isinstance(existing, list) else []) + rules
+
+
 def generate_schema(name: str, model_cls: type) -> dict[str, Any]:
     """Return a JSON Schema dict for ``model_cls`` with stable $id + $schema."""
     schema: dict[str, Any] = model_cls.model_json_schema(mode="validation")  # type: ignore[attr-defined]
     schema["$schema"] = SCHEMA_DRAFT
     schema["$id"] = f"{SCHEMA_BASE_ID}/{name}.schema.json"
+    _inject_tier_rules(schema)
     return schema
 
 
