@@ -52,6 +52,10 @@ Homepage = "https://github.com/dom/thermocline"
 Repository = "https://github.com/dom/thermocline"
 Issues = "https://github.com/dom/thermocline/issues"
 
+[tool.hatch.build]
+# Local engineer audit-trail files; never shipped in any artifact.
+exclude = ["**/CHANGE.md"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/thermocline"]
 
