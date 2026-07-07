@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """AST lint enforcing the DISP-05 network-isolation contract.
 
-Forbids `import httpx | requests | aiohttp` and
-`from httpx|requests|aiohttp import ...` in protected modules:
+Forbids `import httpx | requests | aiohttp | urllib | socket` and
+`from httpx|requests|aiohttp|urllib|socket import ...` in protected modules:
   - photophore.{classifier, shadow, policy, audit, channels, core}
   - thermocline.{envelope, canonical, identity, schemes, sensitive}
+
+``urllib`` and ``socket`` are stdlib network primitives; a protected module
+that reaches for them bypasses the httpx-only carve-out just as surely as a
+third-party client would, so they are forbidden here too.
 
 Allow-listed paths (override protected):
   - photophore/python/src/photophore/dispatch/   (the ONLY module that imports httpx)
@@ -18,7 +22,9 @@ import ast
 import sys
 from pathlib import Path
 
-FORBIDDEN: frozenset[str] = frozenset({"httpx", "requests", "aiohttp"})
+FORBIDDEN: frozenset[str] = frozenset(
+    {"httpx", "requests", "aiohttp", "urllib", "socket"}
+)
 
 # Protected module path fragments (POSIX-style; we normalize separators).
 PROTECTED_FRAGMENTS: tuple[str, ...] = (
