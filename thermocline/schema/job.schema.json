@@ -283,6 +283,7 @@
           "title": "Sig"
         },
         "timestamp": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
           "title": "Timestamp",
           "type": "string"
         }
@@ -397,6 +398,8 @@
           "type": "string"
         },
         "relevance": {
+          "maximum": 1.0,
+          "minimum": 0.0,
           "title": "Relevance",
           "type": "number"
         },
@@ -521,6 +524,7 @@
       "default": null
     },
     "issued_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
       "title": "Issued At",
       "type": "string"
     },
@@ -529,6 +533,7 @@
       "type": "string"
     },
     "job_id": {
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
       "title": "Job Id",
       "type": "string"
     },

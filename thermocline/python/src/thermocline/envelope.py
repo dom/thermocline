@@ -20,7 +20,7 @@ rejected with a Pydantic ``ValidationError``. The version field is named
 """
 from __future__ import annotations
 
-from typing import Any, Literal, TypeVar
+from typing import Annotated, Any, Literal, TypeVar
 
 from pydantic import (
     BaseModel,
@@ -35,6 +35,35 @@ from .errors import UnsupportedVersionError
 from .schemes import KeyScheme
 from .sensitive import Sensitive
 from .version import SUPPORTED_VERSIONS, validate_version
+
+# --- Shared format constraints (Finding 10) --------------------------------
+#
+# ids are UUIDs; timestamps are ISO 8601 with a ``Z`` or numeric offset. These
+# patterns propagate into the JSON Schema artifacts so cross-language ports
+# inherit the same shape.
+_UUID_PATTERN = (
+    r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
+    r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+)
+_ISO8601_PATTERN = (
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$"
+)
+
+#: UUID string field.
+Uuid = Annotated[str, Field(pattern=_UUID_PATTERN)]
+#: ISO 8601 timestamp string field.
+Iso8601 = Annotated[str, Field(pattern=_ISO8601_PATTERN)]
+
+#: The seven job halt codes (README §"Job Halt Codes").
+HaltCode = Literal[
+    "MANIFEST_TAMPER",
+    "PASSTHROUGH_VIOLATION",
+    "CONTRACT_MISMATCH",
+    "STEP_AMBIGUOUS",
+    "TOOL_UNAVAILABLE",
+    "TIMEOUT",
+    "PRIVACY_VIOLATION",
+]
 
 # ---------------------------------------------------------------------------
 # Common base.
@@ -69,7 +98,7 @@ class _Shadow(BaseModel):
     shadow_id: str
     content_type: str
     abstraction: str
-    relevance: float
+    relevance: float = Field(ge=0.0, le=1.0)
 
 
 class ContentBlock(_EnvelopeBase):
@@ -174,7 +203,7 @@ class _DispatchSignature(BaseModel):
     channel_id: str
     policy_hash: str | None = None
     shadows_generated: list[str] = Field(default_factory=list)
-    timestamp: str
+    timestamp: Iso8601
     sig: str | None = None
 
 
@@ -185,11 +214,11 @@ class _ReceiptSignature(BaseModel):
 
     key_scheme: KeyScheme
     node_id: str
-    envelope_id: str | None = None
-    job_id: str | None = None
-    result_id: str | None = None
+    envelope_id: Uuid | None = None
+    job_id: Uuid | None = None
+    result_id: Uuid | None = None
     inputs_received: list[str] = Field(default_factory=list)
-    timestamp: str
+    timestamp: Iso8601
     sig: str | None = None
 
 
@@ -277,8 +306,8 @@ class Task(_VersionedEnvelope):
     """
 
     type: Literal["task"]
-    envelope_id: str
-    issued_at: str
+    envelope_id: Uuid
+    issued_at: Iso8601
     issuer: str
     channel_id: str
     task: _TaskBlock
@@ -299,13 +328,26 @@ class TaskResult(_VersionedEnvelope):
     """
 
     type: Literal["task_result"]
-    envelope_id: str
-    result_id: str
-    completed_at: str
+    envelope_id: Uuid
+    result_id: Uuid
+    completed_at: Iso8601
     responder: str
     outputs: dict[str, Any] = Field(default_factory=dict)
     provenance: _Provenance
     receipt_signature: _ReceiptSignature | None = None
+
+    @model_validator(mode="after")
+    def _check_receipt_envelope_id(self) -> "TaskResult":
+        """The receipt's ``envelope_id`` (when present) must match the outer one."""
+        sig = self.receipt_signature
+        if sig is not None and sig.envelope_id is not None:
+            if sig.envelope_id != self.envelope_id:
+                raise ValueError(
+                    "receipt_signature.envelope_id "
+                    f"{sig.envelope_id!r} does not match envelope_id "
+                    f"{self.envelope_id!r}"
+                )
+        return self
 
     @classmethod
     def parse_strict(cls, payload: dict[str, Any]) -> "TaskResult":
@@ -367,8 +409,8 @@ class Job(_VersionedEnvelope):
     """
 
     type: Literal["job"]
-    job_id: str
-    issued_at: str
+    job_id: Uuid
+    issued_at: Iso8601
     issuer: str
     channel_id: str
     manifest: _Manifest
@@ -395,15 +437,37 @@ class JobResult(_VersionedEnvelope):
     """
 
     type: Literal["job_result"]
-    job_id: str
-    result_id: str
+    job_id: Uuid
+    result_id: Uuid
     status: Literal["complete", "failed", "halted"]
-    completed_at: str
+    completed_at: Iso8601
     responder: str
-    halt_reason: str | None = None
+    halt_reason: HaltCode | None = None
     artifact: _JobArtifact | None = None
     provenance: _Provenance
     receipt_signature: _ReceiptSignature | None = None
+
+    @model_validator(mode="after")
+    def _check_status_coupling(self) -> "JobResult":
+        """Couple ``status`` to ``artifact`` and ``halt_reason``.
+
+        README §"Job Result Envelope": an ``artifact`` is present only on a
+        ``complete`` result; ``failed`` / ``halted`` results carry ``artifact:
+        null`` and a ``halt_reason`` from the defined halt codes.
+        """
+        if self.status == "complete":
+            if self.halt_reason is not None:
+                raise ValueError("a complete job_result must not carry a halt_reason")
+        else:  # failed | halted
+            if self.artifact is not None:
+                raise ValueError(
+                    f"a {self.status} job_result must have artifact null"
+                )
+            if self.halt_reason is None:
+                raise ValueError(
+                    f"a {self.status} job_result requires a halt_reason"
+                )
+        return self
 
     @classmethod
     def parse_strict(cls, payload: dict[str, Any]) -> "JobResult":
@@ -428,8 +492,8 @@ class ErrorEnvelope(_VersionedEnvelope):
     """
 
     type: Literal["task_error", "job_error"] = "task_error"
-    envelope_id: str | None = None
-    job_id: str | None = None
+    envelope_id: Uuid | None = None
+    job_id: Uuid | None = None
     error: _ErrorBody
 
     @classmethod
