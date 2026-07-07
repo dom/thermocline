@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "thermocline"
-version = "0.3.1"
+version = "0.4.0"
 description = "Thermocline shared envelope library — Pydantic v2 models, RFC 8785 canonical JSON, IdentityProvider Protocol with brine reference adapter."
 requires-python = ">=3.11"
 license = { text = "MIT" }

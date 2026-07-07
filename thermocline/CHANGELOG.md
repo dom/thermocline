@@ -9,6 +9,54 @@ The reference implementation lives at `thermocline/python/`; the JSON Schema
 artifacts under `thermocline/schema/` are the language-agnostic contract that
 cross-language ports validate against.
 
+## [0.4.0] - 2026-07-07
+
+Security and conformance hardening from an external review of the suite. This
+release makes the envelope layer enforce invariants it previously delegated by
+comment, and gives the `none` key scheme a single defined contract so forges
+have one behavior to implement.
+
+### Normative changes
+
+- **Privacy-tier enforcement (invariant #1).** `ContentBlock` now rejects a
+  tier-0 block that carries `content`/`shadow`, requires tier-1 to be
+  shadow-only (no raw `content`), and requires tier-2 to be content-only. The
+  JSON Schema artifacts carry matching `if/then/else` so cross-language ports
+  inherit the rule. Previously `parse_strict` accepted raw content at any tier.
+- **`none` key scheme contract.** `none` is an explicit unsigned path.
+  `verify_envelope` raises `SchemeError` (`UNSIGNED_SCHEME_REJECTED`) unless the
+  caller passes `allow_unsigned=True`, in which case it returns an `UnsignedAck`
+  (never a `Receipt`). Forges MUST be able to require a scheme and refuse `none`.
+- **SP-3.3 signing helpers.** `signing.py` adds `sign_envelope` / `verify_envelope`
+  implementing SP-3.3-01/02 exactly (non-`sig` fields pre-filled, canonicalized
+  with `sig = ""`, hex into `sig`, reversed on verify). Verification binds the
+  key to the envelope's declared `node_id`; a valid signature claiming a
+  different `node_id` is rejected. The verified identity is recorded on `Receipt`.
+- **SP-3.3-03 superseded.** The `bytes_hex` tolerance alias is retired; `sig` is
+  the single carrier, and `extra="forbid"` rejects unknown aliases. Wire is
+  single-shaped across implementations.
+- **Signature vocabulary.** README SP-3.3 sections rewritten to the actual model
+  fields (`node_id`, `channel_id`, `policy_hash`, `timestamp`, `key_scheme`,
+  `sig`); the AT-C5 fixture normalized to a model-conformant shape.
+
+### Implemented
+
+- Key rotation now archives the prior verify key (versioned), and `revoke` plus
+  a revocation check are added; `rotate`/`revoke` are on the `IdentityProvider`
+  Protocol. Envelopes signed before rotation still verify; revoked keys are rejected.
+- `Receipt.signature_hash` carries a versioned `signature_hash_algo`
+  (`blake2b-256-v1`) per ADR-0004 rather than an implicit default.
+- Field-level validation: `Literal` halt codes, status/artifact/halt_reason
+  coupling, `relevance` bounded to 0.0..1.0, uuid/iso8601 format checks, and
+  `receipt_signature.envelope_id` matched against the outer envelope.
+- Conformance gates made behavioral: the AT-C coverage gate asserts on
+  non-skipped surface markers, and AT-C2/C3/C4/C6 exercise real tamper paths.
+- Lints hardened: `check_no_json_dumps` also catches `from json import dumps`,
+  aliased `json` imports, and `orjson`/`ujson`/`simplejson`; network-isolation
+  lint extended to `urllib`/`socket`.
+- Version reconciled to `0.4.0` across the README banner, package metadata, and
+  `__version__`. Consumers pinning `thermocline>=0.3.1` remain satisfied.
+
 ## [0.3.1] - 2026-05-13
 
 ### Spec amendments (SP-3.3-01..03)
@@ -116,13 +164,16 @@ commit cadence (THERMO-01 carry-over).
   string at the JSON boundary. Belt-and-suspenders defense against the
   "private bytes leaking via `print(envelope)` / `logger.info(envelope)`"
   failure mode.
-- **Receipt private-constructor invariant**: `Receipt` is constructible only
+- **Receipt private-constructor convention**: `Receipt` is constructed only
   by `IdentityProvider.verify` returning success. Direct construction raises
   `TypeError` at runtime AND fails `mypy --strict` (the constructor takes a
   required `_token` parameter typed against a module-private sentinel class).
-  Makes "skipped verification" inexpressible at both layers. The spec README
-  does not yet name this invariant — promotion to spec is a THERMO-01
-  carry-over for the v0.3.1 spec body update.
+  This is a convention plus mypy friction that makes "skipped verification"
+  awkward to express by accident; it is NOT a security boundary. A determined
+  caller in the same process can still reach the module-private sentinel via
+  reflection. The real integrity guarantee is the cryptographic signature
+  check in `verify`, not the constructor gate. The spec README does not name
+  this invariant; it is an implementation-level ergonomics choice.
 - **Brine scheme keystore-only constraint**: the brine reference adapter
   refuses to start when the platform secure keystore is unavailable
   (`KeystoreUnavailableError`); there is no filesystem or env-var fallback
