@@ -36,3 +36,7 @@ memory/
 
 # Local-only assistant instructions
 AGENTS.md
+
+# Local-only engineer audit trail (never published)
+CHANGE.md
+**/CHANGE.md
