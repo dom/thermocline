@@ -1,6 +1,6 @@
 {
   "_at_surface": "AT-C5",
-  "_description": "Result policy escalation — forge-modified result_policy after dispatch_signature, verifier rejects. The dispatch_signature is over the canonical bytes of the envelope INCLUDING result_policy; mutation by forge invalidates the signature.",
+  "_description": "Result policy escalation: a forge modified result_policy after the sovereign node signed the envelope. The dispatch_signature covers the canonical bytes of the whole envelope (including result_policy), so this mutation invalidates the signature. The signature block uses the model-conformant field vocabulary (key_scheme/node_id/channel_id/timestamp/sig); the sig here is a placeholder that does not verify against the mutated body.",
   "thermocline": "0.3.1",
   "type": "task",
   "envelope_id": "00000000-0000-0000-0000-00000000c500",
@@ -14,12 +14,17 @@
   },
   "context": [],
   "result_policy": {
-    "allowed_output_fields": ["pi", "result_modified_by_forge"]
+    "persist_to_shared": ["pi", "result_modified_by_forge"],
+    "return_only": [],
+    "strip_before_persist": []
   },
   "dispatch_signature": {
-    "scheme": "brine",
     "key_scheme": "brine",
-    "signer_identity": "alice-node",
-    "bytes_hex": "0000000000000000000000000000000000000000000000000000000000000000_INVALID_BECAUSE_FORGE_MUTATED_RESULT_POLICY"
+    "node_id": "alice-node",
+    "channel_id": "chan-pi-forge-local",
+    "policy_hash": null,
+    "shadows_generated": [],
+    "timestamp": "2026-05-11T00:00:00Z",
+    "sig": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
   }
 }

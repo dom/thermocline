@@ -46,10 +46,17 @@ from .schemes import KeyScheme
 __all__ = [
     "Signature",
     "Receipt",
+    "UnsignedAck",
     "IdentityProvider",
     "Verifier",
     "BrineProvider",
 ]
+
+#: Versioned tag for the ``Receipt.signature_hash`` recipe (ADR-0004). The
+#: recipe is ``blake2b(canonical_bytes + signature_bytes, digest_size=32)``;
+#: the tag lets cross-language ports and future migrations dispatch on an
+#: explicit algorithm identifier rather than an implicit default.
+SIGNATURE_HASH_ALGO: Final[str] = "blake2b-256-v1"
 
 
 # ---------------------------------------------------------------------------
@@ -125,6 +132,14 @@ class Receipt:
     signature_hash: str
     verified_at: datetime
     key_scheme: KeyScheme
+    #: Identity whose public key verified the signature. Bound to the
+    #: envelope's declared ``node_id`` on the verify path (AT-C4): a Receipt
+    #: can only exist for the identity the envelope claimed as signer.
+    verified_identity: str
+    #: Versioned tag for the ``signature_hash`` recipe so cross-language ports
+    #: and future hash migrations dispatch on an explicit algorithm identifier
+    #: rather than an implicit default (ADR-0004 versioned-hash discipline).
+    signature_hash_algo: str
 
     def __init__(
         self,
@@ -133,7 +148,9 @@ class Receipt:
         signature_hash: str,
         verified_at: datetime,
         key_scheme: KeyScheme,
+        verified_identity: str,
         _token: _ReceiptConstructorToken,
+        signature_hash_algo: str = "blake2b-256-v1",
     ) -> None:
         if _token is not _RECEIPT_TOKEN:
             raise TypeError(
@@ -151,6 +168,32 @@ class Receipt:
         object.__setattr__(self, "signature_hash", signature_hash)
         object.__setattr__(self, "verified_at", verified_at)
         object.__setattr__(self, "key_scheme", key_scheme)
+        object.__setattr__(self, "verified_identity", verified_identity)
+        object.__setattr__(self, "signature_hash_algo", signature_hash_algo)
+
+
+# ---------------------------------------------------------------------------
+# UnsignedAck — the defined return of the ``none`` key scheme.
+
+
+@dataclass(frozen=True, slots=True)
+class UnsignedAck:
+    """Explicit acknowledgement that an envelope carried ``key_scheme=none``.
+
+    ``none`` is a spec-valid scheme (honest about the absence of a signature)
+    but it is NOT a verified :class:`Receipt`: nothing was cryptographically
+    checked. The verify helpers return this distinct type only when the caller
+    explicitly opts into the unsigned path (``allow_unsigned=True``); otherwise
+    they raise :class:`SchemeError` (code ``UNSIGNED_SCHEME_REJECTED``).
+
+    A downstream forge that requires integrity (Seamount) refuses ``none`` by
+    leaving ``allow_unsigned`` at its default ``False`` and treating any
+    ``UnsignedAck`` it constructs itself as non-authoritative. The spec forbids
+    ``none`` on channels with a trust ceiling above tier-0.
+    """
+
+    envelope_id: str
+    reason: str = "key_scheme=none: envelope is unsigned (no integrity guarantee)"
 
 
 # ---------------------------------------------------------------------------
@@ -180,6 +223,22 @@ class IdentityProvider(Protocol):
         ...
 
     def generate(self, *, identity: str) -> None:
+        ...
+
+    def rotate(self, *, identity: str) -> None:
+        """Replace the signing key, archiving the old verify key (key.rotate).
+
+        Envelopes signed before rotation MUST remain verifiable against the
+        archived key (README §"Constraints"). See :meth:`BrineProvider.rotate`.
+        """
+        ...
+
+    def revoke(self, *, identity: str, key_version: int | None = None) -> None:
+        """Mark a key revoked so verifiers reject its signatures (key.revoke).
+
+        ``key_version`` selects an archived version; ``None`` revokes the
+        current key. See :meth:`BrineProvider.revoke`.
+        """
         ...
 
 
@@ -258,41 +317,64 @@ class Verifier:
           called on one. Returning ``None`` surfaces the misuse as
           :class:`SchemeError` (because ``None != signature.scheme.value``).
 
-        Fallback rule: when the envelope has NO ``type`` field, OR the
-        canonical nested signature block is absent / empty / has no
-        ``key_scheme`` key, the helper falls back to top-level
-        ``envelope.get('key_scheme')``. This is the only sanctioned
-        deviation from the spec's nested layout -- preserved so existing
-        tests whose envelopes carry ``type='task'`` + top-level
-        ``key_scheme`` but NO ``dispatch_signature`` block continue to pass
-        (e.g., ``test_identity_brine_roundtrip._minimal_envelope``).
+        Fallback rule (restricted in 0.4.0): the top-level
+        ``envelope.get('key_scheme')`` fallback applies ONLY to envelopes with
+        NO ``type`` field (synthetic flat-dict test inputs). A *typed* envelope
+        (``task`` / ``job`` / ``task_result`` / ``job_result``) whose nested
+        signature block is absent, empty, or missing ``key_scheme`` is malformed
+        for verification and raises :class:`SchemeError`. The prior behavior
+        tolerated a non-spec top-level ``key_scheme`` on typed envelopes "so
+        tests pass"; that loophole let a signer place the scheme at a location
+        the wire format never defines. It is closed.
         """
         env_type = envelope.get("type")
-        if env_type in ("task", "job"):
-            block = envelope.get("dispatch_signature")
+        if env_type in ("task", "job", "task_result", "job_result"):
+            block_key = (
+                "dispatch_signature"
+                if env_type in ("task", "job")
+                else "receipt_signature"
+            )
+            block = envelope.get(block_key)
             if isinstance(block, dict):
                 scheme = block.get("key_scheme")
                 if scheme is not None:
                     return str(scheme)
-            # Nested block is absent / empty / lacks key_scheme -- fall
-            # through to the top-level fallback (preserves existing
-            # _minimal_envelope tests).
-            top = envelope.get("key_scheme")
-            return str(top) if top is not None else None
-        if env_type in ("task_result", "job_result"):
-            block = envelope.get("receipt_signature")
-            if isinstance(block, dict):
-                scheme = block.get("key_scheme")
-                if scheme is not None:
-                    return str(scheme)
-            top = envelope.get("key_scheme")
-            return str(top) if top is not None else None
+            raise SchemeError(
+                f"typed envelope {env_type!r} has no declared key_scheme in its "
+                f"{block_key!r} block; a non-spec top-level key_scheme is not "
+                "accepted (scheme must live in the nested signature block)",
+                code="UNSUPPORTED_KEY_SCHEME",
+            )
         if env_type in ("task_error", "job_error"):
             # Error envelopes are unsigned by spec.
             return None
         # No ``type`` field -- synthetic flat-dict test path (tolerated).
         top = envelope.get("key_scheme")
         return str(top) if top is not None else None
+
+    @staticmethod
+    def _declared_node_id(envelope: dict[str, Any]) -> str | None:
+        """Return the ``node_id`` declared in the canonical signature block.
+
+        Mirrors :meth:`_declared_scheme`'s block routing. Returns ``None`` when
+        the envelope has no typed signature block (synthetic flat-dict inputs),
+        so the node-id binding check is skipped for those.
+        """
+        env_type = envelope.get("type")
+        block_key: str | None
+        if env_type in ("task", "job"):
+            block_key = "dispatch_signature"
+        elif env_type in ("task_result", "job_result"):
+            block_key = "receipt_signature"
+        else:
+            block_key = None
+        if block_key is not None:
+            block = envelope.get(block_key)
+            if isinstance(block, dict):
+                node_id = block.get("node_id")
+                if node_id is not None:
+                    return str(node_id)
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -310,6 +392,19 @@ _KEYSTORE_SERVICE_DEFAULT: Final[str] = "thermocline.brine"
 #: the SAME keystore service but under this prefix, so they cannot collide
 #: with seed entries (seed entries use the bare identity string).
 _PUBKEY_PREFIX: Final[str] = "pubkey:"
+
+#: Prefix for an archived verify key produced by :meth:`BrineProvider.rotate`.
+#: Full key is ``archive:<identity>:<version>`` -> hex verify key. Archived
+#: keys remain verifiable so envelopes signed before a rotation still verify
+#: (README §"Constraints": a rotated key remains valid for verification).
+_ARCHIVE_PREFIX: Final[str] = "archive:"
+
+#: Prefix for the archive-version counter: ``archivecount:<identity>`` -> int.
+_ARCHIVE_COUNT_PREFIX: Final[str] = "archivecount:"
+
+#: Prefix for revocation flags. ``revoked:<identity>`` revokes the current key;
+#: ``revoked:<identity>:<version>`` revokes a specific archived version.
+_REVOKED_PREFIX: Final[str] = "revoked:"
 
 
 class BrineProvider:
@@ -428,11 +523,102 @@ class BrineProvider:
                 "(use generate() first)",
                 code="IDENTITY_NOT_FOUND",
             )
+        # Archive the OLD verify key under a versioned entry so envelopes signed
+        # before this rotation remain verifiable (README §"Constraints": "A
+        # rotated key remains valid for verification of previously signed
+        # envelopes"). We archive the public verify key only, never the seed.
+        old_signing_key = nacl.signing.SigningKey(bytes.fromhex(existing))
+        old_verify_hex = bytes(old_signing_key.verify_key).hex()
+        del old_signing_key
+        version = self._archive_count(identity)
+        keyring.set_password(
+            self._keyring_service,
+            f"{_ARCHIVE_PREFIX}{identity}:{version}",
+            old_verify_hex,
+        )
+        keyring.set_password(
+            self._keyring_service,
+            f"{_ARCHIVE_COUNT_PREFIX}{identity}",
+            str(version + 1),
+        )
         new_signing_key = nacl.signing.SigningKey.generate()
         keyring.set_password(
             self._keyring_service, identity, new_signing_key.encode().hex()
         )
         del new_signing_key
+
+    def revoke(self, *, identity: str, key_version: int | None = None) -> None:
+        """Mark a key revoked so :meth:`verify` rejects its signatures.
+
+        ``key_version=None`` (default) revokes the identity's CURRENT signing
+        key. Passing an integer revokes a specific archived verify-key version
+        (as produced by :meth:`rotate`). Revocation is idempotent and additive;
+        there is no un-revoke path by design (revocation is a one-way trust
+        decision, README §"Required Capabilities" key.revoke).
+
+        Raises
+        ------
+        IdentityError
+            Code ``IDENTITY_NOT_FOUND`` if revoking the current key of an
+            identity that has no seed and no registered public key.
+        """
+        if key_version is None:
+            has_seed = (
+                keyring.get_password(self._keyring_service, identity) is not None
+            )
+            has_pub = (
+                keyring.get_password(
+                    self._keyring_service, _PUBKEY_PREFIX + identity
+                )
+                is not None
+            )
+            if not has_seed and not has_pub:
+                raise IdentityError(
+                    f"cannot revoke identity {identity!r}: no key material exists",
+                    code="IDENTITY_NOT_FOUND",
+                )
+            keyring.set_password(
+                self._keyring_service, f"{_REVOKED_PREFIX}{identity}", "1"
+            )
+        else:
+            keyring.set_password(
+                self._keyring_service,
+                f"{_REVOKED_PREFIX}{identity}:{key_version}",
+                "1",
+            )
+
+    def _archive_count(self, identity: str) -> int:
+        raw = keyring.get_password(
+            self._keyring_service, f"{_ARCHIVE_COUNT_PREFIX}{identity}"
+        )
+        return int(raw) if raw is not None else 0
+
+    def _is_revoked(self, identity: str, key_version: int | None = None) -> bool:
+        key = (
+            f"{_REVOKED_PREFIX}{identity}"
+            if key_version is None
+            else f"{_REVOKED_PREFIX}{identity}:{key_version}"
+        )
+        return keyring.get_password(self._keyring_service, key) is not None
+
+    def _archived_verify_keys(self, identity: str) -> list[tuple[int, bytes]]:
+        """Return non-revoked archived ``(version, verify_key_bytes)`` pairs."""
+        out: list[tuple[int, bytes]] = []
+        for version in range(self._archive_count(identity)):
+            if self._is_revoked(identity, version):
+                continue
+            hex_key = keyring.get_password(
+                self._keyring_service, f"{_ARCHIVE_PREFIX}{identity}:{version}"
+            )
+            if hex_key is None:
+                continue
+            try:
+                key_bytes = bytes.fromhex(hex_key)
+            except ValueError:
+                continue
+            if len(key_bytes) == 32:
+                out.append((version, key_bytes))
+        return out
 
     def public_key(self, *, identity: str) -> bytes:
         """Return the 32-byte Ed25519 verify key for ``identity``.
@@ -456,8 +642,14 @@ class BrineProvider:
         ``test_identity_cross_role.py``.
 
         Raises :class:`IdentityError` (code ``IDENTITY_NOT_FOUND``) when both
-        are absent.
+        are absent, or (code ``KEY_REVOKED``) when the current key has been
+        revoked via :meth:`revoke`.
         """
+        if self._is_revoked(identity):
+            raise IdentityError(
+                f"current key for identity {identity!r} is revoked",
+                code="KEY_REVOKED",
+            )
         pub_hex = keyring.get_password(
             self._keyring_service, _PUBKEY_PREFIX + identity
         )
@@ -587,21 +779,42 @@ class BrineProvider:
                 f"{signature.scheme.value!r}",
                 code="UNSUPPORTED_KEY_SCHEME",
             )
-        verify_key_bytes = self.public_key(identity=signature.signer_identity)
-        verify_key = nacl.signing.VerifyKey(verify_key_bytes)
-        canonical = canonicalize(envelope)
-        try:
-            verify_key.verify(canonical, signature.bytes_)
-        except nacl.exceptions.BadSignatureError:
+        # AT-C4 / README §"AT-C4": bind verification to the envelope's declared
+        # node_id. A signature that verifies under one identity's key but
+        # claims a different node_id in the envelope is an impersonation
+        # attempt; refuse to produce a Receipt.
+        identity = signature.signer_identity
+        declared_node_id = Verifier._declared_node_id(envelope)
+        if declared_node_id is not None and declared_node_id != identity:
             return None
-        sig_hash = hashlib.blake2b(
-            canonical + signature.bytes_, digest_size=32
-        ).hexdigest()
-        envelope_id = str(envelope.get("envelope_id", ""))
-        return Receipt(
-            envelope_id=envelope_id,
-            signature_hash=sig_hash,
-            verified_at=datetime.now(timezone.utc),
-            key_scheme=KeyScheme.BRINE,
-            _token=_RECEIPT_TOKEN,
-        )
+        canonical = canonicalize(envelope)
+
+        # Candidate verify keys, in precedence order: the current key (unless
+        # revoked), then each non-revoked archived key from prior rotations.
+        # Archived keys let envelopes signed before a rotation still verify
+        # (README §"Constraints"); revoked keys are excluded (key.revoke).
+        candidates: list[bytes] = []
+        if not self._is_revoked(identity):
+            candidates.append(self.public_key(identity=identity))
+        candidates.extend(key for _, key in self._archived_verify_keys(identity))
+
+        for verify_key_bytes in candidates:
+            try:
+                nacl.signing.VerifyKey(verify_key_bytes).verify(
+                    canonical, signature.bytes_
+                )
+            except nacl.exceptions.BadSignatureError:
+                continue
+            sig_hash = hashlib.blake2b(
+                canonical + signature.bytes_, digest_size=32
+            ).hexdigest()
+            return Receipt(
+                envelope_id=str(envelope.get("envelope_id", "")),
+                signature_hash=sig_hash,
+                verified_at=datetime.now(timezone.utc),
+                key_scheme=KeyScheme.BRINE,
+                verified_identity=identity,
+                signature_hash_algo=SIGNATURE_HASH_ALGO,
+                _token=_RECEIPT_TOKEN,
+            )
+        return None

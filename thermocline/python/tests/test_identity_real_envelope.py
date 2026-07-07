@@ -75,20 +75,23 @@ def test_declared_scheme_job_error_returns_none():
 
 
 def test_declared_scheme_task_with_top_level_keyscheme_no_dispatch_signature():
-    """type='task' + top-level key_scheme + no dispatch_signature ->
-    falls back to top-level. This is the path that allows the
-    ``test_identity_brine_roundtrip._minimal_envelope`` tests to keep passing.
+    """0.4.0 (Finding 6): a typed envelope with NO dispatch_signature block
+    is malformed for verification. The non-spec top-level ``key_scheme``
+    fallback no longer rescues it; ``_declared_scheme`` raises SchemeError.
     """
     env = {"type": "task", "key_scheme": "brine"}  # NO dispatch_signature
-    assert _Verifier._declared_scheme(env) == "brine"
+    with pytest.raises(SchemeError) as exc:
+        _Verifier._declared_scheme(env)
+    assert exc.value.code == "UNSUPPORTED_KEY_SCHEME"
 
 
 def test_declared_scheme_task_with_empty_dispatch_signature_block():
-    """type='task' + dispatch_signature={} (empty) + top-level key_scheme ->
-    falls back to top-level (the empty nested block has no key_scheme key).
+    """0.4.0 (Finding 6): an empty nested block has no key_scheme, so a typed
+    envelope still raises SchemeError rather than reading a top-level fallback.
     """
     env = {"type": "task", "dispatch_signature": {}, "key_scheme": "brine"}
-    assert _Verifier._declared_scheme(env) == "brine"
+    with pytest.raises(SchemeError):
+        _Verifier._declared_scheme(env)
 
 
 def test_declared_scheme_typeless_envelope_uses_top_level():
@@ -106,15 +109,17 @@ def test_verify_real_task_envelope_through_nested_key_scheme(brine_in_memory_key
     envelope = _load_fixture("thermocline/conformance/valid/task-pi-100-digits.json")
     # Fixture ships with key_scheme='none' -- overwrite to brine for the round-trip.
     envelope["dispatch_signature"]["key_scheme"] = "brine"
+    # 0.4.0 node_id binding: sign as the identity the envelope declares.
+    node_id = envelope["dispatch_signature"]["node_id"]
 
     signer = BrineProvider(keyring_service="thermocline.test")
-    signer.generate(identity="alice")
-    signature = signer.sign(envelope=envelope, signer_identity="alice")
+    signer.generate(identity=node_id)
+    signature = signer.sign(envelope=envelope, signer_identity=node_id)
 
     verifier_role = BrineProvider(keyring_service="thermocline.test.verifier")
     verifier_role.register_public_key(
-        identity="alice",
-        verify_key=signer.public_key(identity="alice"),
+        identity=node_id,
+        verify_key=signer.public_key(identity=node_id),
     )
 
     v = Verifier()
@@ -134,15 +139,16 @@ def test_verify_real_task_result_envelope_through_nested_key_scheme(
         "thermocline/conformance/valid/task-result-pi-100-digits.json"
     )
     envelope["receipt_signature"]["key_scheme"] = "brine"
+    node_id = envelope["receipt_signature"]["node_id"]
 
     signer = BrineProvider(keyring_service="thermocline.test")
-    signer.generate(identity="forge-pi-1")
-    signature = signer.sign(envelope=envelope, signer_identity="forge-pi-1")
+    signer.generate(identity=node_id)
+    signature = signer.sign(envelope=envelope, signer_identity=node_id)
 
     verifier_role = BrineProvider(keyring_service="thermocline.test.verifier")
     verifier_role.register_public_key(
-        identity="forge-pi-1",
-        verify_key=signer.public_key(identity="forge-pi-1"),
+        identity=node_id,
+        verify_key=signer.public_key(identity=node_id),
     )
 
     v = Verifier()
