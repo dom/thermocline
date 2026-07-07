@@ -76,6 +76,7 @@
         "envelope_id": {
           "anyOf": [
             {
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
               "type": "string"
             },
             {
@@ -95,6 +96,7 @@
         "job_id": {
           "anyOf": [
             {
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
               "type": "string"
             },
             {
@@ -114,6 +116,7 @@
         "result_id": {
           "anyOf": [
             {
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
               "type": "string"
             },
             {
@@ -136,6 +139,7 @@
           "title": "Sig"
         },
         "timestamp": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
           "title": "Timestamp",
           "type": "string"
         }
@@ -166,12 +170,22 @@
       "default": null
     },
     "completed_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
       "title": "Completed At",
       "type": "string"
     },
     "halt_reason": {
       "anyOf": [
         {
+          "enum": [
+            "MANIFEST_TAMPER",
+            "PASSTHROUGH_VIOLATION",
+            "CONTRACT_MISMATCH",
+            "STEP_AMBIGUOUS",
+            "TOOL_UNAVAILABLE",
+            "TIMEOUT",
+            "PRIVACY_VIOLATION"
+          ],
           "type": "string"
         },
         {
@@ -182,6 +196,7 @@
       "title": "Halt Reason"
     },
     "job_id": {
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
       "title": "Job Id",
       "type": "string"
     },
@@ -204,6 +219,7 @@
       "type": "string"
     },
     "result_id": {
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
       "title": "Result Id",
       "type": "string"
     },

@@ -52,6 +52,7 @@
         "envelope_id": {
           "anyOf": [
             {
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
               "type": "string"
             },
             {
@@ -71,6 +72,7 @@
         "job_id": {
           "anyOf": [
             {
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
               "type": "string"
             },
             {
@@ -90,6 +92,7 @@
         "result_id": {
           "anyOf": [
             {
+              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
               "type": "string"
             },
             {
@@ -112,6 +115,7 @@
           "title": "Sig"
         },
         "timestamp": {
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
           "title": "Timestamp",
           "type": "string"
         }
@@ -131,10 +135,12 @@
   "description": "The ``task_result`` response envelope.\n\nSpec: ``../README.md`` \u00a7 Task Result Envelope.",
   "properties": {
     "completed_at": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
       "title": "Completed At",
       "type": "string"
     },
     "envelope_id": {
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
       "title": "Envelope Id",
       "type": "string"
     },
@@ -162,6 +168,7 @@
       "type": "string"
     },
     "result_id": {
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
       "title": "Result Id",
       "type": "string"
     },
