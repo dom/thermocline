@@ -36,6 +36,7 @@ memory/
 
 # Local-only assistant instructions
 AGENTS.md
+.claude/
 
 # Local-only engineer audit trail (never published)
 CHANGE.md
