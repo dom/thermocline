@@ -15,22 +15,65 @@ from pathlib import Path
 
 import pytest
 
+from thermocline import BrineProvider, Verifier, sign_envelope, verify_envelope
+
+
+def _task(node_id: str) -> dict:
+    return {
+        "thermocline": "0.3.1",
+        "type": "task",
+        "envelope_id": "a1b2c3d4-0000-4000-8000-0000000000c6",
+        "issued_at": "2026-05-08T00:00:00Z",
+        "issuer": node_id,
+        "channel_id": "chan-x",
+        "task": {"type": "data.compute", "instruction": "x", "parameters": {}},
+        "context": [],
+        "dispatch_signature": {
+            "key_scheme": "brine",
+            "node_id": node_id,
+            "channel_id": "chan-x",
+            "timestamp": "2026-05-08T00:00:00Z",
+            "sig": "",
+        },
+    }
+
 
 @pytest.mark.at_surface("AT-C6")
-@pytest.mark.documents_only
-def test_brine_provider_exposes_rotate_primitive() -> None:
-    """AT-C6: thermocline.identity.BrineProvider declares the rotation API.
-
-    The recovery procedure is operator-driven; the library contract is that
-    rotation is a first-class primitive (rotate() exists and is documented).
+def test_rotate_recovers_and_preserves_prior_verifiability(
+    brine_in_memory_keyring,
+) -> None:
+    """AT-C6 behavioral: rotate() gives a fresh key while pre-rotation
+    envelopes remain verifiable (the recovery contract, not a hasattr check).
     """
-    from thermocline.identity import BrineProvider
-    # The rotation contract: a public method (or generate() with a fresh
-    # identity argument) exists on BrineProvider. v0.1 accepts either shape.
-    has_rotate = hasattr(BrineProvider, "rotate") or hasattr(BrineProvider, "generate")
-    assert has_rotate, (
-        "AT-C6: BrineProvider must expose rotate() or generate() for key recovery"
-    )
+    provider = BrineProvider(keyring_service="thermocline.test.atc6")
+    provider.generate(identity="alice")
+    verifier = Verifier()
+    verifier.register(provider)
+
+    signed = sign_envelope(_task("alice"), provider, signer_identity="alice")
+    payload = signed.model_dump(mode="json")
+    old_pub = provider.public_key(identity="alice")
+
+    provider.rotate(identity="alice")
+    assert provider.public_key(identity="alice") != old_pub
+    # Envelope signed before rotation still verifies against the archived key.
+    assert verify_envelope(payload, verifier) is not None
+
+
+@pytest.mark.at_surface("AT-C6")
+def test_revoke_rejects_compromised_key(brine_in_memory_keyring) -> None:
+    """AT-C6 behavioral: a revoked key no longer produces a Receipt."""
+    provider = BrineProvider(keyring_service="thermocline.test.atc6b")
+    provider.generate(identity="alice")
+    verifier = Verifier()
+    verifier.register(provider)
+
+    signed = sign_envelope(_task("alice"), provider, signer_identity="alice")
+    payload = signed.model_dump(mode="json")
+    assert verify_envelope(payload, verifier) is not None
+
+    provider.revoke(identity="alice")
+    assert verify_envelope(payload, verifier) is None
 
 
 @pytest.mark.at_surface("AT-C6")

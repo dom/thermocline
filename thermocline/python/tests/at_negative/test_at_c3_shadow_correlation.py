@@ -15,7 +15,34 @@ import re
 
 import pytest
 
+from thermocline import Task
+from thermocline.canonical import canonicalize
+
 SHADOW_ID_PATTERN = re.compile(r"^[0-9a-f]{32}$")
+
+
+def _task_with_shadow(shadow_id: str) -> dict:
+    return {
+        "thermocline": "0.3.1",
+        "type": "task",
+        "envelope_id": "a1b2c3d4-0000-4000-8000-0000000000c3",
+        "issued_at": "2026-05-08T00:00:00Z",
+        "issuer": "alice-node",
+        "channel_id": "chan-x",
+        "task": {"type": "data.compute", "instruction": "x", "parameters": {}},
+        "context": [
+            {
+                "tier": 1,
+                "role": "user_file",
+                "shadow": {
+                    "shadow_id": shadow_id,
+                    "content_type": "document",
+                    "abstraction": "A document",
+                    "relevance": 0.5,
+                },
+            }
+        ],
+    }
 
 
 @pytest.mark.at_surface("AT-C3")
@@ -34,19 +61,23 @@ def test_shadow_id_format_contract() -> None:
 
 
 @pytest.mark.at_surface("AT-C3")
-def test_shadow_id_runtime_uniqueness_covered_in_photophore() -> None:
-    """AT-C3 runtime invariant: shadow uniqueness lives in photophore.shadow.
+def test_distinct_shadow_ids_yield_distinct_canonical_bytes() -> None:
+    """AT-C3 envelope-scope: distinct shadow_ids produce distinct canonical bytes.
 
-    The runtime test that proves uniqueness (Hypothesis 200 examples × 100
-    inner iterations = 20,000 generate() calls) is at:
-
-        photophore/python/tests/test_shadow_uniqueness_property.py
-
-    Thermocline-py defines only the envelope wire contract; the generator
-    contract is owned by photophore.shadow.
+    The correlation defense at the envelope layer is that a tier-1 block
+    carries only an opaque per-dispatch shadow_id: two dispatches of the same
+    underlying content carry different shadow_ids and therefore serialize to
+    different canonical bytes, so an observer cannot equate them by wire form.
+    The generator-side uniqueness invariant (that photophore never reuses an
+    id) is proven in photophore's property test; here we prove the wire
+    contract that distinct ids are actually distinguished under canonicalize.
     """
-    pytest.skip(
-        "AT-C3 runtime uniqueness is tested in "
-        "photophore/python/tests/test_shadow_uniqueness_property.py; "
-        "thermocline-py library has no shadow generator."
+    a = Task.parse_strict(_task_with_shadow("0" * 32))
+    b = Task.parse_strict(_task_with_shadow("1" * 32))
+    assert canonicalize(a.model_dump(mode="json")) != canonicalize(
+        b.model_dump(mode="json")
     )
+    # And the tier-1 block never carries raw content (invariant #1): the shadow
+    # is the only representation that crosses.
+    assert a.context[0].content is None
+    assert a.context[0].shadow is not None
