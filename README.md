@@ -2,10 +2,10 @@
 
 ### A Privacy-Tiered Task Envelope Specification for Distributed AI Nodes
 
-**Version:** 0.3.0-draft
+**Version:** 0.4.0
 **Status:** RFC — Pre-release, seeking feedback
 **License:** MIT
-**Companion Specifications:** Photophore 0.3.0+ (policy engine) · Seamount 0.3.0+ (compute forge)
+**Companion Specifications:** Photophore 0.4.0+ (policy engine) · Seamount 0.4.0+ (compute forge)
 **Changelog:** [thermocline/CHANGELOG.md](thermocline/CHANGELOG.md) — spec patches discovered during reference-implementation work
 
 ---
