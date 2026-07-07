@@ -169,6 +169,48 @@ def test_visitor_records_json_dumps_call() -> None:
     assert "json.dumps" in source
 
 
+def test_lint_detects_aliased_json_module(tmp_path: Path) -> None:
+    """``import json as j`` then ``j.dumps(...)`` is flagged (Finding 12)."""
+    violator = tmp_path / "aliased.py"
+    violator.write_text("import json as j\nx = j.dumps({'a': 1})\n", encoding="utf-8")
+    findings = scan(tmp_path)
+    assert any("aliased.py" in str(p) for p, _, _ in findings)
+
+
+def test_lint_detects_from_json_import_dumps(tmp_path: Path) -> None:
+    """``from json import dumps`` then ``dumps(...)`` is flagged (Finding 12)."""
+    violator = tmp_path / "fromimport.py"
+    violator.write_text("from json import dumps\nx = dumps({'a': 1})\n", encoding="utf-8")
+    findings = scan(tmp_path)
+    assert any("fromimport.py" in str(p) for p, _, _ in findings)
+
+
+def test_lint_detects_from_json_import_dump_aliased(tmp_path: Path) -> None:
+    """``from json import dumps as d`` then ``d(...)`` is flagged (Finding 12)."""
+    violator = tmp_path / "fromalias.py"
+    violator.write_text("from json import dumps as d\nx = d({'a': 1})\n", encoding="utf-8")
+    findings = scan(tmp_path)
+    assert any("fromalias.py" in str(p) for p, _, _ in findings)
+
+
+def test_lint_detects_orjson_import(tmp_path: Path) -> None:
+    """Importing orjson/ujson/simplejson in library code is flagged (Finding 12)."""
+    for lib in ("orjson", "ujson", "simplejson"):
+        violator = tmp_path / f"uses_{lib}.py"
+        violator.write_text(f"import {lib}\n", encoding="utf-8")
+    findings = scan(tmp_path)
+    flagged = {str(p) for p, _, _ in findings}
+    for lib in ("orjson", "ujson", "simplejson"):
+        assert any(f"uses_{lib}.py" in f for f in flagged), f"{lib} import not flagged"
+
+
+def test_lint_detects_from_orjson_import(tmp_path: Path) -> None:
+    violator = tmp_path / "from_orjson.py"
+    violator.write_text("from orjson import dumps\n", encoding="utf-8")
+    findings = scan(tmp_path)
+    assert any("from_orjson.py" in str(p) for p, _, _ in findings)
+
+
 def test_module_runs_via_dash_m() -> None:
     """``python -m thermocline.scripts.check_no_json_dumps`` exits 0 on the live tree."""
     import subprocess
