@@ -60,7 +60,7 @@ python -m describe_forge init --keyring-service seamount.describeforge
 ```
 
 The sovereign node's signing identity (used by `photophore channel new`) is
-created lazily on first channel creation — no explicit init step.
+created lazily on first channel creation, with no explicit init step.
 
 ### macOS first-prompt gotchas
 
@@ -89,7 +89,7 @@ Wait for the readiness marker:
 PIFORGE_READY port=5117
 ```
 
-The marker is contractual — the Photophore integration-test harness greps for
+The marker is contractual. The Photophore integration-test harness greps for
 this exact line. Keep the forge process running for the remaining steps.
 
 ## 6. Create a channel (TOFU pubkey fetch)
@@ -105,7 +105,7 @@ photophore channel new \
 ```
 
 Expected output: a fresh channel UUID. The `--fetch-pubkey-from` flag is
-**Trust On First Use** — Photophore fetches the forge's published public key
+**Trust On First Use**. Photophore fetches the forge's published public key
 from `GET /pubkey`, stores it in the trust store, and any subsequent forge
 signature must verify against it. Tamper-evident.
 

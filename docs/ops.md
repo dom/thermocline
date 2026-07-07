@@ -1,6 +1,6 @@
 # Thermocline-py Operations
 
-`thermocline-py` is a library — it has no daemon, no socket, no service. There
+`thermocline-py` is a library. It has no daemon, no socket, no service. There
 is no thermocline ops surface.
 
 For ops concerns affecting the suite:

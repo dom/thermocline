@@ -22,15 +22,15 @@ that return `Signature` and `Receipt` value types, NOT `PrivateKey`. The brine
 reference adapter holds no key material between RPCs; the adapter refuses to
 start when `python-keyring` cannot reach the platform secure keystore (no
 fall-back to file or env-var storage). `Receipt` is constructible only by
-`IdentityProvider.verify` returning success — "skipped verification" cannot
+`IdentityProvider.verify` returning success, so "skipped verification" cannot
 be expressed in code (IDENT-04).
 
 ## Consequences
 
 - ✓ Key material never crosses the process boundary except through the keystore RPC.
 - ✓ Hardware-backed keystores (Apple Silicon Secure Enclave, Windows TPM) are
-  drop-in upgrades — no code changes needed.
-- ✓ Tests cannot "skip verification" — type system forbids it.
+  drop-in upgrades with no code changes needed.
+- ✓ Tests cannot "skip verification" because the type system forbids it.
 - ✗ Performance: each signature is a keystore RPC. For high-throughput dispatch
   this could add latency; v0.1 dispatch volume makes this acceptable.
 - ✗ macOS Secure Enclave hardware-anchored entries require a developer signing

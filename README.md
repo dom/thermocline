@@ -3,23 +3,23 @@
 ### A Privacy-Tiered Task Envelope Specification for Distributed AI Nodes
 
 **Version:** 0.4.0
-**Status:** RFC — Pre-release, seeking feedback
+**Status:** RFC (pre-release, seeking feedback)
 **License:** MIT
 **Companion Specifications:** Photophore 0.4.0+ (policy engine) · Seamount 0.4.0+ (compute forge)
-**Changelog:** [thermocline/CHANGELOG.md](thermocline/CHANGELOG.md) — spec patches discovered during reference-implementation work
+**Changelog:** [thermocline/CHANGELOG.md](thermocline/CHANGELOG.md) (spec patches discovered during reference-implementation work)
 
 ---
 
 ## The Problem
 
 Modern AI agent systems treat all context as equally accessible. A task dispatched to
-a remote model, a cloud API, or a second machine carries everything — file contents,
-personal details, prior conversation, identity signals — because there is no standard
+a remote model, a cloud API, or a second machine carries everything (file contents,
+personal details, prior conversation, identity signals) because there is no standard
 way to say: *this part crosses the boundary, this part does not.*
 
 Existing memory systems (Vertex AI Memory Bank, OpenViking, Mem0, and others) solve
-retrieval and persistence well. None of them define a **privacy boundary primitive** —
-a standard way to strip, abstract, or shadow sensitive context before it leaves a
+retrieval and persistence well. None of them define a **privacy boundary primitive**.
+It is a standard way to strip, abstract, or shadow sensitive context before it leaves a
 trusted node, and to reconstruct meaning on the other side without ever transmitting
 the original.
 
@@ -34,21 +34,21 @@ dispatch across privacy boundaries.
 
 It defines:
 
-- A **task payload schema** — what a unit of work looks like
-- A **job payload schema** — what a multi-step, manifest-driven unit of work looks like
-- A **privacy tier system** — how context is classified before dispatch
-- A **shadow block** — the abstracted, safe-to-transmit representation of private context
-- A **result schema** — what comes back, and what is permitted to persist
-- A **provenance record** — a lightweight audit trail of what crossed which boundary
-- A **role architecture** — what capabilities a node must have, independent of which system provides them
-- An **identity provider interface** — what the signing system must do, independent of implementation
+- A **task payload schema** (what a unit of work looks like)
+- A **job payload schema** (what a multi-step, manifest-driven unit of work looks like)
+- A **privacy tier system** (how context is classified before dispatch)
+- A **shadow block** (the abstracted, safe-to-transmit representation of private context)
+- A **result schema** (what comes back, and what is permitted to persist)
+- A **provenance record** (a lightweight audit trail of what crossed which boundary)
+- A **role architecture** (what capabilities a node must have, independent of which system provides them)
+- An **identity provider interface** (what the signing system must do, independent of implementation)
 
 Thermocline does **not** define:
 
-- Transport (HTTP, WebSocket, local socket, Thunderbolt bridge, internet — all valid)
-- Storage (OpenBrain, SQLite, flat files — implementor's choice)
+- Transport (any of HTTP, WebSocket, local socket, Thunderbolt bridge, or internet)
+- Storage (implementor's choice of OpenBrain, SQLite, or flat files)
 - Inference (any model, any runtime)
-- Policy (who decides what is private — that is the policy engine's job)
+- Policy (who decides what is private is the policy engine's job)
 
 A **forge** is any Thermocline-compliant node that receives task or job envelopes, performs
 work, and returns signed results. A forge may be a local desktop machine, a remote
@@ -109,7 +109,7 @@ A `local` context block is **never included in dispatch**. Its existence may be
 acknowledged (a shadow may reference it), but its contents are never transmitted.
 
 A `shared` context block is **replaced by a shadow** before dispatch. The shadow is
-a policy-generated abstraction — a summary, a type hint, an anonymized descriptor —
+a policy-generated abstraction (a summary, a type hint, an anonymized descriptor)
 that conveys relevance without conveying content.
 
 A `public` context block is **transmitted directly**.
@@ -123,7 +123,7 @@ A shadow carries:
 
 - A shadow ID (opaque, locally meaningful, not reversible)
 - A content type hint (`file`, `conversation`, `identity`, `credential`, `document`, etc.)
-- An abstraction string — a human-readable description with no identifying detail
+- An abstraction string (a human-readable description with no identifying detail)
 - A relevance score (0.0–1.0) indicating how pertinent this context is to the task
 
 A shadow does **not** carry:
@@ -133,7 +133,7 @@ A shadow does **not** carry:
 - Anything that could reconstruct the original
 
 The receiving node uses the shadow to understand *that* context exists and *roughly what
-kind* it is, so it can reason appropriately — without ever seeing the source.
+kind* it is, so it can reason appropriately, without ever seeing the source.
 
 ### The Task Envelope
 
@@ -411,7 +411,7 @@ notation (e.g., `com.example.lim.enrich`).
 ## Identity Provider Interface
 
 Thermocline envelopes are signed at dispatch and at receipt. The identity provider is the
-system — whatever it is — that manages the keys used for signing and verification.
+system (whatever it is) that manages the keys used for signing and verification.
 
 Any system that satisfies this interface is a valid identity provider. The spec does
 not mandate a specific implementation.
@@ -440,11 +440,11 @@ in use. The identity provider implements one or more schemes.
 | `none` | No signature. Valid for single-node private use only. |
 
 *Brine is named for the hypersaline water that sinks to the deepest ocean floors and
-pools there undisturbed — denser than everything above it, never mixing unless invited.
+pools there undisturbed, denser than everything above it, never mixing unless invited.
 A key held locally, passed only when trust is established.
 The name is the interface; ed25519 is the implementation.*
 
-`none` is a valid declared value — honest about the absence of a trust guarantee.
+`none` is a valid declared value, honest about the absence of a trust guarantee.
 It is not permitted on channels with a trust ceiling above `tier-0`.
 
 **`none` verification contract (v0.4.0).** `none` is an explicit unsigned path,
@@ -476,7 +476,7 @@ storage.
 
 - Key scheme is declared at channel creation time and cannot change mid-session
 - Scheme downgrade attempts MUST be rejected
-- The public key is the node identity — share it freely
+- The public key is the node identity, so share it freely
 - The private key MUST never leave the secure keystore
 - Key rotation MUST be propagated to all registered channels before the old key
   is archived
@@ -489,7 +489,7 @@ The `dispatch_signature` block on `task` and `job` envelopes binds the envelope
 to the dispatching sovereign node. It is computed over the canonical-JSON form
 of the entire envelope.
 
-**SP-3.3-02 (v0.3.1) — Field pre-fill ordering**: Implementations MUST populate all non-`sig` fields of `dispatch_signature` (`key_scheme`, `node_id`, `channel_id`, `policy_hash`, `shadows_generated`, `timestamp`) BEFORE canonicalization and signing. The `sig` field SHALL be the empty string `""` during canonicalization. Failure to pre-fill any field will produce a signature that the verifier cannot reproduce. The reference implementation exposes this as `thermocline.sign_envelope(envelope, provider, signer_identity=...)`.
+**Field pre-fill ordering (SP-3.3-02, v0.3.1)**: Implementations MUST populate all non-`sig` fields of `dispatch_signature` (`key_scheme`, `node_id`, `channel_id`, `policy_hash`, `shadows_generated`, `timestamp`) BEFORE canonicalization and signing. The `sig` field SHALL be the empty string `""` during canonicalization. Failure to pre-fill any field will produce a signature that the verifier cannot reproduce. The reference implementation exposes this as `thermocline.sign_envelope(envelope, provider, signer_identity=...)`.
 
 ### Receipt Signatures
 
@@ -497,7 +497,7 @@ The `receipt_signature` block on `task_result` and `job_result` envelopes binds
 the result to the forge that produced it. Verification reproduces the
 canonicalization the signer used.
 
-**SP-3.3-01 (v0.3.1) — Canonicalization invariant**: When verifying a `receipt_signature`, implementations MUST canonicalize the envelope with the `receipt_signature.sig` field set to the empty string `""`, NOT removed. The signer SHALL produce the signature over this same canonicalization shape. Removing the field would cause map-key set divergence between signer and verifier. The reference implementation exposes verification as `thermocline.verify_envelope(payload, verifier)`.
+**Canonicalization invariant (SP-3.3-01, v0.3.1)**: When verifying a `receipt_signature`, implementations MUST canonicalize the envelope with the `receipt_signature.sig` field set to the empty string `""`, NOT removed. The signer SHALL produce the signature over this same canonicalization shape. Removing the field would cause map-key set divergence between signer and verifier. The reference implementation exposes verification as `thermocline.verify_envelope(payload, verifier)`.
 
 Example (using the model-conformant `receipt_signature` field vocabulary):
 
@@ -506,13 +506,13 @@ Example (using the model-conformant `receipt_signature` field vocabulary):
 { "...envelope...": "...", "receipt_signature": { "key_scheme": "brine", "node_id": "...", "envelope_id": "...", "inputs_received": [], "timestamp": "...", "sig": "" } }
 ```
 
-**SP-3.3-03 (v0.4.0) — Single signature field**: The `sig` field is the only carrier of signature bytes, encoded as a lowercase hex string. Earlier drafts floated a `bytes_hex` tolerance alias; it is retired. Envelopes validate under `extra="forbid"`, so an unknown alias is rejected rather than silently accepted, keeping the wire single-shaped across implementations.
+**Single signature field (SP-3.3-03, v0.4.0)**: The `sig` field is the only carrier of signature bytes, encoded as a lowercase hex string. Earlier drafts floated a `bytes_hex` tolerance alias; it is retired. Envelopes validate under `extra="forbid"`, so an unknown alias is rejected rather than silently accepted, keeping the wire single-shaped across implementations.
 
 ---
 
 ## Threat Model
 
-Thermocline's threat model addresses attacks against the envelope layer — the contract
+Thermocline's threat model addresses attacks against the envelope layer, the contract
 between nodes. Attacks against the policy engine (Photophore) and the forge (Seamount)
 are covered in their respective specifications.
 
@@ -520,7 +520,7 @@ are covered in their respective specifications.
 
 | Assumption | Implication |
 |------------|------------|
-| The sovereign node is honest | The entire system's trust root. If the sovereign node is compromised, all guarantees fail. This is by design — see Residual Risks. |
+| The sovereign node is honest | The entire system's trust root. If the sovereign node is compromised, all guarantees fail. This is by design. See Residual Risks. |
 | The policy engine correctly classifies content | Tier assignments reflect the user's actual privacy intent. Misclassification is a policy engine bug, not an envelope bug. |
 | The identity provider's secure keystore is intact | Private keys have not been exfiltrated. Platform keystore compromise is outside Thermocline's threat boundary. |
 | Transport integrity exists | TLS or equivalent prevents in-transit modification. Thermocline does not re-implement transport security. |
@@ -545,7 +545,7 @@ cache (TTL = 2x configured task timeout) and reject duplicate envelope_ids.
 core forge property. A replayed task produces a duplicate result but does not leak
 additional context (the envelope contains the same content as the original).
 
-**AT-C3: Shadow Inference — Statistical Correlation**
+**AT-C3: Shadow Inference (Statistical Correlation)**
 *Attack:* A forge or observer collects shadows across many dispatches and correlates
 patterns to infer private content. Example: shadow abstraction "a financial document
 from Q4" appears in every dispatch to a specific forge during January → inference
@@ -554,7 +554,7 @@ that the sovereign node is processing year-end financials.
 SHOULD vary abstraction phrasing across dispatches for the same content. Shadow IDs
 MUST be unique per dispatch (not stable across dispatches for the same content).
 *Residual:* Statistical inference from shadow metadata is theoretically possible with
-sufficient volume. This is an inherent tradeoff of the shadow primitive — conveying
+sufficient volume. This is an inherent tradeoff of the shadow primitive. Conveying
 relevance without content necessarily leaks some information about the existence and
 rough nature of private context. See Photophore spec for shadow quality requirements.
 
@@ -572,7 +572,7 @@ infeasible without physical access.
 node authorized.
 *Mitigation:* `result_policy` is part of the signed envelope. The sovereign node
 authored it; the forge cannot modify it without invalidating the signature. On
-result receipt, the sovereign node enforces its own result_policy — the forge's
+result receipt, the sovereign node enforces its own result_policy. The forge's
 copy is advisory; the sovereign node's copy is authoritative.
 *Residual:* A compromised forge could return results that *contain* more information
 than the result_policy intended (e.g., embedding private data in the output). The
@@ -589,11 +589,11 @@ propagates to all registered channels.
 can compromise any keystore. This is outside Thermocline's threat boundary. The identity
 provider SHOULD support key rotation on a configurable schedule.
 
-### Residual Risks — Accepted by Design
+### Residual Risks (Accepted by Design)
 
 **The sovereign node is the root of trust.** If it is compromised (malware,
 unauthorized access, coerced operator), all privacy guarantees fail. This is not a
-bug — it is the fundamental design choice of a privacy-first system. Thermocline does not
+bug. It is the fundamental design choice of a privacy-first system. Thermocline does not
 attempt to protect users from their own compromised machine because doing so would
 require trusting a third party, which contradicts the design premise.
 
@@ -666,13 +666,13 @@ The forge is **stateless between jobs**. On halt or failure, the forge flushes a
 execution state and returns only the job result envelope (`status: halted`,
 `halt_reason`, no artifact). Nothing is retained.
 
-**Rule 1 — No resume.** The issuer reissues from scratch with a new `job_id`. The
+**Rule 1. No resume.** The issuer reissues from scratch with a new `job_id`. The
 forge has no resumption mechanism and no checkpoint storage.
 
-**Rule 2 — Issuer owns retry.** If a job fails, the policy node decides whether to
+**Rule 2. Issuer owns retry.** If a job fails, the policy node decides whether to
 reissue, modify the manifest, or abort. The forge never retries autonomously.
 
-**Rule 3 — No deduplication on the forge.** If the issuer reissues the same logical
+**Rule 3. No deduplication on the forge.** If the issuer reissues the same logical
 job (e.g., after a network drop on result return), the forge executes it again.
 The issuer tracks `job_id` completion locally if idempotency is required.
 
@@ -714,7 +714,7 @@ declaration cannot be verified against a trust ceiling.
 
 **8. Key scheme is declared, not inferred.** Every signature block carries its scheme
 explicitly. Verifiers must reject missing or unrecognized schemes. A channel's key
-scheme is set at creation time and cannot change mid-session — scheme downgrade
+scheme is set at creation time and cannot change mid-session. Scheme downgrade
 attempts must be rejected.
 
 **9. The forge executes, never interprets.** For `job` envelopes, the forge may not
@@ -724,7 +724,7 @@ autonomous resolution.
 **10. Roles are composable.** Any system may implement any combination of roles
 (sovereign node, policy engine, identity provider, forge, memory store). The spec
 does not mandate role separation. Role composition does not alter the envelope
-contract — a system acting as both sovereign node and forge still signs dispatches
+contract. A system acting as both sovereign node and forge still signs dispatches
 and verifies receipts.
 
 ---
@@ -777,22 +777,22 @@ forward-compatible one.
 
 ### 0.3.0
 - Renamed schema version field from `cirdan` to `thermocline` to align with reference implementations (`pi-forge`, etc.) and the spec's own Versioning prose. Pre-release correction within the 0.3.0-draft RFC window.
-- Added Role Architecture section — five functional roles (sovereign node, policy
-  engine, identity provider, forge, memory store) defined as composable capabilities,
+- Added Role Architecture section defining five functional roles (sovereign node, policy
+  engine, identity provider, forge, memory store) as composable capabilities,
   not coupled to specific systems
-- Added Identity Provider Interface — required capabilities (generate, sign, verify,
+- Added Identity Provider Interface with required capabilities (generate, sign, verify,
   rotate, revoke), platform integration requirements (Keychain, libsecret, Credential
-  Manager), hardware backing recommendations (Secure Enclave, TPM)
-- Replaced `osaurus` key scheme with generic identity provider model — any system
+  Manager), and hardware backing recommendations (Secure Enclave, TPM)
+- Replaced `osaurus` key scheme with generic identity provider model. Any system
   satisfying the interface is valid; no hard dependency on any specific identity system
-- Added Threat Model section — six attack surfaces (envelope tampering, replay, shadow
+- Added Threat Model section covering six attack surfaces (envelope tampering, replay, shadow
   inference, forged signatures, result policy escalation, key compromise) with
   mitigations and residual risk analysis
 - Added Design Constraint 10 (roles are composable)
 - Moved example configurations, "Relationship to Existing Systems" table, and
   "A Note on Naming" to Appendix A (non-normative)
 - Updated all envelope schema versions to 0.3.0
-- Added Companion Specifications header field — formal references to Photophore 0.3.0+ and Seamount 0.3.0+
+- Added Companion Specifications header field with formal references to Photophore 0.3.0+ and Seamount 0.3.0+
 
 ### 0.2.0
 - Added `job` envelope type: manifest-driven multi-step dispatch
@@ -836,7 +836,7 @@ Photophore and Seamount cross-reference these ADRs from their own READMEs.
 
 ---
 
-## Appendix A — Non-Normative
+## Appendix A (Non-Normative)
 
 ### Example Configurations
 
@@ -844,15 +844,15 @@ Thermocline is transport-agnostic and hardware-agnostic. The same envelope forma
 across all of these configurations.
 
 **Laptop → Desktop (local, high-bandwidth)**
-A personal laptop acts as the sovereign node — private files, personal context,
-policy engine running locally. A desktop or more powerful machine on the same network
+A personal laptop acts as the sovereign node (private files, personal context,
+policy engine running locally). A desktop or more powerful machine on the same network
 or connected directly (e.g., via Thunderbolt) acts as the forge. Tasks dispatch
 over the local link; results write back to the laptop. No cloud involved.
 
 **Workstation → Remote GPU (network, cloud forge)**
 A developer's workstation dispatches image generation or model inference tasks to
 a rented GPU instance. The envelope travels over HTTPS. The forge never receives
-the private prompt or source material — only the shadow and the task parameters.
+the private prompt or source material, only the shadow and the task parameters.
 
 **Personal node → Team node (memory sync)**
 A personal memory instance and a shared team instance maintain a channel. Only
@@ -861,7 +861,7 @@ and sensitive files never leave the personal instance. The team sees only what t
 owner has explicitly cleared as public.
 
 **Mobile → Desktop (sovereign mobile node)**
-A phone or tablet acts as the personal sovereign node — always with the user,
+A phone or tablet acts as the personal sovereign node, always with the user,
 holding private context. A desktop handles heavy processing as a forge. The mobile
 device dispatches tasks and receives results; the desktop never holds state between
 sessions.
@@ -878,22 +878,22 @@ crosses the network.
 | System | Relationship |
 |--------|-------------|
 | OpenBrain | Thermocline results may commit to OpenBrain via the policy engine's persist policy |
-| OpenClaw | OpenClaw can play any role in the suite — sovereign node, policy engine, identity provider, forge, or all simultaneously. As a forge, it operates on what the envelope contains and never receives tier-0 content. |
-| Osaurus | Osaurus agents on a sovereign node may provide cryptographic node identity via the identity provider interface. Not required — any system satisfying the interface is valid. |
+| OpenClaw | OpenClaw can play any role in the suite (sovereign node, policy engine, identity provider, forge, or all simultaneously). As a forge, it operates on what the envelope contains and never receives tier-0 content. |
+| Osaurus | Osaurus agents on a sovereign node may provide cryptographic node identity via the identity provider interface. Not required. Any system satisfying the interface is valid. |
 | OpenViking | Thermocline is transport; OpenViking could serve as a context store behind it |
 | Vertex Memory Bank | Thermocline is transport; Memory Bank could be a `public`-tier persist target |
-| MCP | Thermocline envelopes could be wrapped in MCP tool calls — not required |
+| MCP | Thermocline envelopes could be wrapped in MCP tool calls (not required) |
 
 ### A Note on Naming
 
-A thermocline is a sharp, invisible boundary between two layers of ocean water —
-warm surface water above, cold deep water below. The two worlds coexist without
+A thermocline is a sharp, invisible boundary between two layers of ocean water
+(warm surface water above, cold deep water below). The two worlds coexist without
 touching. Things cross the boundary, but they arrive changed by the crossing: warmer
 things cool, denser things rise. The thermocline is not a wall. It is an interface.
 Work passes through it; private context does not.
 
 This spec is named for that boundary. It defines the interface between what a node
-holds and what it dispatches — between what is private and what may cross. It holds
+holds and what it dispatches, between what is private and what may cross. It holds
 nothing itself. It enables the crossing.
 
 The names in this suite form a coherent system: Thermocline defines the boundary.

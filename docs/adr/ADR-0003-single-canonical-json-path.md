@@ -6,13 +6,13 @@
 
 Every signature in the Thermocline suite is computed over a canonicalized JSON
 serialization of the envelope. Two implementations of "canonical JSON" that
-disagree on a single byte produce signatures that no third party can verify —
+disagree on a single byte produce signatures that no third party can verify. That is
 the cross-impl drift the suite exists to prevent. RFC 8785 (JSON Canonicalization
 Scheme, JCS) fixes the canonicalization. The reference implementation must use
 a single library call site for every signing path AND every verify path, so
 divergence can be ruled out structurally.
 
-A negative lint — `check_no_json_dumps.py` — runs in CI to forbid `json.dumps`
+A negative lint (`check_no_json_dumps.py`) runs in CI to forbid `json.dumps`
 in library code paths. The only sanctioned path to bytes is `canonicalize()`,
 which calls `rfc8785.canonicalize()` exactly once.
 
@@ -42,4 +42,4 @@ use `json.dumps` for human-readable output only.
 - THERMO-04 in REQUIREMENTS.md
 - `thermocline/python/src/thermocline/canonical.py` (single call site)
 - `thermocline/python/src/thermocline/scripts/check_no_json_dumps.py` (CI lint)
-- RFC 8785 — JSON Canonicalization Scheme
+- RFC 8785 (JSON Canonicalization Scheme)

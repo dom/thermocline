@@ -7,7 +7,7 @@
 The Photophore audit log is the proof artifact for every channel transition,
 every dispatch, and every CLI invocation. The log MUST be append-only and
 cryptographically chained so that any single-byte tamper invalidates all
-subsequent entries — this is what AT-A6 protects against.
+subsequent entries. This is what AT-A6 protects against.
 
 BLAKE3 is significantly faster than SHA-256, modern, and audited. Its
 parallelism + tree-mode features matter less than its simplicity here, but
@@ -28,8 +28,8 @@ sensitive content (defense in depth on top of `Sensitive[T]` static typing).
 
 - ✓ Chain verification scales: BLAKE3 hashes a 1KB payload in microseconds.
 - ✓ `algo_version` field provides a clean migration path for future hash families.
-- ✓ Same hash family used for CLI arg sanitization — `blake3:<hex>` for
-  file-path args records correlation without leaking content.
+- ✓ Same hash family used for CLI arg sanitization (`blake3:<hex>` for
+  file-path args records correlation without leaking content).
 - ✗ Requires the `blake3` Python wheel; pure-stdlib alternatives (SHA-256) are
   the documented fallback if no wheel exists for a target platform.
 

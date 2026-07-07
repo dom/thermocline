@@ -49,8 +49,8 @@ Expected: 150+ passed, 3 skipped.
 Thermocline-py delegates all key management to `python-keyring`, which is
 installed automatically. Platform-specific notes:
 
-- **macOS**: works out of the box. First use triggers Keychain prompts —
-  click "Always Allow" once per service namespace (`thermocline.brine`,
+- **macOS**: works out of the box. First use triggers Keychain prompts.
+  Click "Always Allow" once per service namespace (`thermocline.brine`,
   `seamount.piforge`, `seamount.describeforge`).
 - **Linux**: requires libsecret + a running D-Bus session. Headless servers
   must run a `dbus-daemon` instance or use `keyrings.cryptfile` as a
@@ -71,6 +71,6 @@ Enclave: key material never leaves the keystore.
 
 ## Next steps
 
-- [Quickstart](quickstart.md) — full clone-to-first-dispatch walkthrough.
-- [Operations](ops.md) — library has no ops surface; cross-refs.
-- [ADRs](adr/index.md) — architecture decisions.
+- [Quickstart](quickstart.md) (full clone-to-first-dispatch walkthrough).
+- [Operations](ops.md) (library has no ops surface; cross-refs).
+- [ADRs](adr/index.md) (architecture decisions).

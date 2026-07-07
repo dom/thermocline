@@ -3,8 +3,8 @@
 Reference Python library for the [Thermocline envelope spec](../README.md).
 
 `thermocline-py` is the type-and-crypto contract layer of the Thermocline Suite.
-Every other suite component — Photophore (policy engine), `pi-forge`, and
-`describe-forge` — imports from this package. It deliberately ships zero network
+Photophore (policy engine), `pi-forge`, and `describe-forge` all import from this
+package. It deliberately ships zero network
 code and zero policy logic. It establishes:
 
 - Pydantic v2 models for every envelope shape (`task`, `task_result`, `job`,
@@ -13,7 +13,7 @@ code and zero policy logic. It establishes:
   byte content. `repr`/`str` are redacted; `.reveal()` is the only unwrap path.
 - `KeyScheme` enum, `SUPPORTED_VERSIONS`, and an `EnvelopeError` exception
   hierarchy with stable string error codes.
-- `thermocline.canonical.canonicalize` — the single canonical-JSON
+- `thermocline.canonical.canonicalize`, the single canonical-JSON
   signing-input path across the entire suite (RFC 8785 / JCS via `rfc8785`).
 - `IdentityProvider` Protocol + `brine` reference adapter (PyNaCl
   Ed25519) that delegates every signature to the platform keystore.
@@ -26,7 +26,7 @@ code and zero policy logic. It establishes:
 pip install -e ".[dev]"          # from the thermocline/python/ directory
 ```
 
-Python 3.11+ is required. Pydantic is pinned to `>=2.7,<3.0` — v1 patterns
+Python 3.11+ is required. Pydantic is pinned to `>=2.7,<3.0`, and v1 patterns
 (`.dict()`, `.json()`) are forbidden by CI lint.
 
 ## Quickstart
@@ -67,25 +67,25 @@ assert roundtripped == task
 
 ## Where things live
 
-- `src/thermocline/version.py` — `SUPPORTED_VERSIONS` (`{"0.3.0", "0.3.1"}`)
+- `src/thermocline/version.py`, holding `SUPPORTED_VERSIONS` (`{"0.3.0", "0.3.1"}`)
   and `validate_version()`.
-- `src/thermocline/errors.py` — `EnvelopeError` and typed subclasses with
+- `src/thermocline/errors.py`, holding `EnvelopeError` and typed subclasses with
   stable error codes.
-- `src/thermocline/sensitive.py` — `Sensitive[T]` wrapper.
-- `src/thermocline/schemes.py` — `KeyScheme` enum.
-- `src/thermocline/envelope.py` — Pydantic v2 envelope models.
-- `src/thermocline/scripts/build_schemas.py` — schema generator (`--write` /
+- `src/thermocline/sensitive.py`, the `Sensitive[T]` wrapper.
+- `src/thermocline/schemes.py`, the `KeyScheme` enum.
+- `src/thermocline/envelope.py`, the Pydantic v2 envelope models.
+- `src/thermocline/scripts/build_schemas.py`, the schema generator (`--write` /
   `--check`).
-- `tests/` — unit + property tests (run with `pytest`).
-- `../schema/` — generated JSON Schema artifacts (committed; CI checks for
+- `tests/`, unit + property tests (run with `pytest`).
+- `../schema/`, generated JSON Schema artifacts (committed; CI checks for
   drift).
 
 ## Design references
 
-- Spec: [`../README.md`](../README.md) (Thermocline v0.3.0-draft) — the source
+- Spec: [`../README.md`](../README.md) (Thermocline v0.3.0-draft), the source
   of truth for envelope shape and field semantics.
 - Design discipline (load-bearing rules enforced by tests and CI):
-  - `Sensitive[T]` discipline — bytes never leak via repr/str/logger.
+  - `Sensitive[T]` discipline (bytes never leak via repr/str/logger).
   - `json.dumps` is forbidden in signing paths (canonical JSON only,
     enforced by `tests/test_no_json_dumps.py`).
   - Pydantic v1 patterns (`.dict()`, `.json()`) are forbidden by lint.
@@ -94,4 +94,4 @@ assert roundtripped == task
 
 ## License
 
-MIT — see [`../LICENSE`](../LICENSE) (or fall back to repository-level license).
+MIT. See [`../LICENSE`](../LICENSE) (or fall back to repository-level license).
