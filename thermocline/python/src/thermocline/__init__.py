@@ -40,13 +40,15 @@ from .identity import (
     IdentityProvider,
     Receipt,
     Signature,
+    UnsignedAck,
     Verifier,
 )
 from .schemes import KeyScheme
 from .sensitive import Sensitive
+from .signing import sign_envelope, verify_envelope
 from .version import SUPPORTED_VERSIONS, validate_version
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 __all__ = [
     # Envelope shapes (Pydantic v2 models from .envelope).
@@ -74,6 +76,10 @@ __all__ = [
     "Verifier",
     "Signature",
     "Receipt",
+    "UnsignedAck",
+    # SP-3.3 signing helpers (public since 0.4.0).
+    "sign_envelope",
+    "verify_envelope",
     # Exception hierarchy (codes are part of the public API).
     "EnvelopeError",
     "UnsupportedVersionError",

@@ -62,6 +62,7 @@ def test_receipt_runtime_error_mentions_design_rationale() -> None:
             signature_hash="forged",
             verified_at=datetime.now(timezone.utc),
             key_scheme=KeyScheme.BRINE,
+            verified_identity="forged",
             _token=_Foreign(),  # type: ignore[arg-type]
         )
     except TypeError as exc:

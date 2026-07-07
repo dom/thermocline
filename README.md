@@ -447,6 +447,16 @@ The name is the interface; ed25519 is the implementation.*
 `none` is a valid declared value — honest about the absence of a trust guarantee.
 It is not permitted on channels with a trust ceiling above `tier-0`.
 
+**`none` verification contract (v0.4.0).** `none` is an explicit unsigned path,
+not a bypass. A verifier presented with `key_scheme=none` MUST NOT return a
+verification witness that is indistinguishable from a real one. In the reference
+implementation, `verify_envelope(payload, verifier)` raises
+`SchemeError(code="UNSIGNED_SCHEME_REJECTED")` for `none` unless the caller
+opts in with `allow_unsigned=True`, in which case it returns a distinct
+`UnsignedAck` (not a `Receipt`). A forge that requires integrity refuses `none`
+by leaving `allow_unsigned` at its default. This is what lets a compute forge
+(Seamount) be configured to REQUIRE a signing scheme and reject `none`.
+
 ### Platform Integration
 
 The identity provider MUST store private keys in the platform's secure keystore:
@@ -479,7 +489,7 @@ The `dispatch_signature` block on `task` and `job` envelopes binds the envelope
 to the dispatching sovereign node. It is computed over the canonical-JSON form
 of the entire envelope.
 
-**SP-3.3-02 (v0.3.1) — Field pre-fill ordering**: Implementations MUST populate all non-`sig` fields of `dispatch_signature` (`signer`, `key_scheme`, `ts`, `algo`) BEFORE canonicalization and signing. The `sig` field SHALL be the empty string `""` during canonicalization. Failure to pre-fill any field will produce a signature that the verifier cannot reproduce.
+**SP-3.3-02 (v0.3.1) — Field pre-fill ordering**: Implementations MUST populate all non-`sig` fields of `dispatch_signature` (`key_scheme`, `node_id`, `channel_id`, `policy_hash`, `shadows_generated`, `timestamp`) BEFORE canonicalization and signing. The `sig` field SHALL be the empty string `""` during canonicalization. Failure to pre-fill any field will produce a signature that the verifier cannot reproduce. The reference implementation exposes this as `thermocline.sign_envelope(envelope, provider, signer_identity=...)`.
 
 ### Receipt Signatures
 
@@ -487,16 +497,16 @@ The `receipt_signature` block on `task_result` and `job_result` envelopes binds
 the result to the forge that produced it. Verification reproduces the
 canonicalization the signer used.
 
-**SP-3.3-01 (v0.3.1) — Canonicalization invariant**: When verifying a `receipt_signature`, implementations MUST canonicalize the envelope with the `receipt_signature.sig` field set to the empty string `""`, NOT removed. The signer SHALL produce the signature over this same canonicalization shape. Removing the field would cause map-key set divergence between signer and verifier.
+**SP-3.3-01 (v0.3.1) — Canonicalization invariant**: When verifying a `receipt_signature`, implementations MUST canonicalize the envelope with the `receipt_signature.sig` field set to the empty string `""`, NOT removed. The signer SHALL produce the signature over this same canonicalization shape. Removing the field would cause map-key set divergence between signer and verifier. The reference implementation exposes verification as `thermocline.verify_envelope(payload, verifier)`.
 
-Example:
+Example (using the model-conformant `receipt_signature` field vocabulary):
 
 ```json
 // Before signing / verification canonicalization:
-{ "...envelope...": "...", "receipt_signature": { "signer": "...", "key_scheme": "brine", "ts": "...", "algo": "ed25519", "sig": "" } }
+{ "...envelope...": "...", "receipt_signature": { "key_scheme": "brine", "node_id": "...", "envelope_id": "...", "inputs_received": [], "timestamp": "...", "sig": "" } }
 ```
 
-**SP-3.3-03 (v0.3.1) — Field tolerance**: Verifiers SHOULD accept `receipt_signature.sig` as either a hex-encoded string (preferred) or a `bytes_hex` field carrying the same value. Implementations writing receipts MUST emit `sig`; reading them MUST accept both for backward compatibility with pre-0.3.1 drafts.
+**SP-3.3-03 (v0.4.0) — Single signature field**: The `sig` field is the only carrier of signature bytes, encoded as a lowercase hex string. Earlier drafts floated a `bytes_hex` tolerance alias; it is retired. Envelopes validate under `extra="forbid"`, so an unknown alias is rejected rather than silently accepted, keeping the wire single-shaped across implementations.
 
 ---
 
@@ -747,6 +757,19 @@ The following reference implementations are planned or in development:
 Thermocline follows semantic versioning. The schema version in `"thermocline"` must be a valid
 semver string. Minor versions add fields; patch versions fix ambiguities. Major versions
 may break compatibility and require explicit migration.
+
+**Forward-compatibility policy (v0.4.0).** The reference models validate with
+`extra="forbid"` and accept only versions in an explicit `SUPPORTED_VERSIONS`
+set, so a strict parser rejects both unknown fields and unknown versions rather
+than silently degrading (Design Constraint 5). The "minor versions add fields"
+rule therefore does NOT mean an older reference parser tolerates a newer minor's
+new fields: a field added in a future minor is a breaking input to a strict
+parser until that version is added to `SUPPORTED_VERSIONS`. Producers and
+consumers advance `SUPPORTED_VERSIONS` together; a new envelope field ships in
+the same release that teaches parsers to accept its declared version. Tolerant
+("ignore unknown fields") parsing is intentionally not offered, because on a
+privacy envelope an unrecognized field is a fail-closed condition, not a
+forward-compatible one.
 
 ---
 

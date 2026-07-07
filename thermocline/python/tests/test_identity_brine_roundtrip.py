@@ -83,7 +83,6 @@ def _minimal_envelope(envelope_id: str = "env-001") -> dict[str, Any]:
         "thermocline": "0.3.1",
         "type": "task",
         "envelope_id": envelope_id,
-        "key_scheme": "brine",
         "issuer": "alice",
         "issued_at": "2026-05-08T00:00:00Z",
         "channel_id": "chan-test",
@@ -93,6 +92,10 @@ def _minimal_envelope(envelope_id: str = "env-001") -> dict[str, Any]:
             "parameters": {"digits": 100},
         },
         "context": [],
+        # 0.4.0: the scheme lives in the nested signature block (the top-level
+        # key_scheme fallback is now typeless-only). node_id matches the signer
+        # so the node_id binding on verify is satisfied.
+        "dispatch_signature": {"key_scheme": "brine", "node_id": "alice"},
     }
 
 

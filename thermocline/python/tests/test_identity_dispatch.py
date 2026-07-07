@@ -136,6 +136,7 @@ def test_verifier_dispatch_passes_through_receipt() -> None:
         signature_hash="0" * 64,
         verified_at=datetime.now(timezone.utc),
         key_scheme=KeyScheme.PGP,
+        verified_identity="alice",
         _token=_RECEIPT_TOKEN,
     )
 
